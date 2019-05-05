@@ -18,7 +18,7 @@ if (isset($_POST['submit'])) {
 				$fileNameNew = uniqid('', true).".".$fileActualExt;
 				$fileDestination = 'uploads/'.$fileNameNew;
 				move_uploaded_file($fileTmpName, $fileDestination);
-				header("Location: index.php?uploadsuccess");
+				header("Location: indexUploadSucceeded.html");
 		} else {
 			echo "There was an error uploading the file!";
 		}
