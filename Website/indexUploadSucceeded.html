@@ -1,7 +1,7 @@
 <!-- 
-Tessa van Beers
-30-04-2019
-15:30 - 18:30, 20:00-23:30
+@Author: Tessa van Beers & (UploadButton by Frederik Ondrikov)
+@Date: 30-04-2019
+@workingtimes: 15:30 - 18:30, 20:00-23:
 -->
 
 
@@ -70,11 +70,16 @@ Tessa van Beers
     </div>
   </section>
 
+  <!-- 
+  @author: Frederik Ondrikov
+  @date: 29-04-2019
+  @comment: This is the code for the upload buttons, it works togther with the upload.php - file.
+  -->
   <section id="upload" class="bg-light">
     <div class="container">
       <div class="row">
         <div class="col-lg-8 mx-auto">
-          <h2>Upload your .csv file</h2>
+          <h2>Upload your .csv file</h2>  
           <p class="lead">Choose a file and upload!</p>
           <form action="upload.php" method="POST" enctype="multipart/form-data">
             <input type="file" name="file">
