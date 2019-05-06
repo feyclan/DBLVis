@@ -1,3 +1,8 @@
+document.getElementById('visNodeLinkBtn').addEventListener('click', function () {
+    drawNodeLinkGraph();
+});
+
+
 function drawNodeLinkGraph() {
     /* global d3 */
     var graph = {};
