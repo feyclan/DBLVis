@@ -85,6 +85,10 @@
             <input type="file" name="file">
             <button type="submit" name="submit">Upload</button>
           </form>
+          <!-- Temporary button & canvas for testing purposes -->
+          <input type="file" id="uploadBtn"/>
+          <!-- creating canvas of 500 by 500 pixels -->
+          <canvas id="network" width="500" height="500"></canvas>
         </div>
       </div>
     </div>
@@ -107,6 +111,18 @@
 
   <!-- Custom JavaScript for this theme -->
   <script src="js/scrolling-nav.js"></script>
+
+  <!-- Lib for visualizations (D3.js) -->
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+
+  <!-- Script for visualizations -->
+  <script src="js/vis.js"></script>
+
+  <!-- Lib for parsing -->
+  <script src="js/papaparse.min.js"></script>
+
+  <!-- Script for parsing .csv files -->
+  <script src="js/parser.js"></script>
 
 </body>
 
