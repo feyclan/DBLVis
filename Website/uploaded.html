@@ -1,6 +1,6 @@
 <!-- 
-@Author: Tessa van Beers & (UploadButton by Frederik Ondrikov)
-@Date: 30-04-2019
+Tessa van Beers
+06-05-2019
 -->
 
 
@@ -35,11 +35,17 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarResponsive">
         <ul class="navbar-nav ml-auto">
-          <li class="nav-item">
-            <a class="nav-link js-scroll-trigger" href="#works">How does it work?</a>
+		  <li class="nav-item">
+            <a class="nav-link js-scroll-trigger" href="index.html">Use another file</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link js-scroll-trigger" href="#upload">Upload</a>
+            <a class="nav-link js-scroll-trigger" href="#adjust">Adjustments</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link js-scroll-trigger" href="#visu">Visualisation</a>
+          </li>
+		  <li class="nav-item">
+            <a class="nav-link js-scroll-trigger" href="#save">Save</a>
           </li>
         </ul>
       </div>
@@ -48,47 +54,50 @@
 
   <header class="bg-primary text-white">
     <div class="container text-center">
-      <h1>Welcome to Visualisation Studio</h1>
-      <p class="lead">Upload your .cvs file and visualise your data!</p>
+      <h1>Visualisation Studio</h1>
+      <p class="lead">&#10004; You successfully uploaded your file!</p>
     </div>
   </header>
 
-  <section id="works">
+  <section id="adjust">
     <div class="container">
       <div class="row">
         <div class="col-lg-8 mx-auto">
-          <h2>How does it work?</h2>
-          <p class="lead">Follow these steps for your personal visualisation:</p>
+          <h2>Adjustments</h2>
+          <p class="lead">Adjust the parameters to your preference</p>
           <ul>
-            <li>Upload your .csv file</li>
-            <li>Adjust the parameter to your liking</li>
-            <li>Share your findings</li>
+            Add check boxes here
           </ul>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- 
-  @author: Frederik Ondrikov
-  @date: 29-04-2019
-  @comment: This is the code for the upload buttons, it works togther with the upload.php - file.
-  -->
-
-  <section id="upload" class="bg-light">
+  <section id="visu" class="bg-light">
     <div class="container">
       <div class="row">
         <div class="col-lg-8 mx-auto">
-          <h2>Upload your .csv file</h2>
-          <p class="lead">Choose a file and upload!</p>
-          <form action="upload.php" method="POST" enctype="multipart/form-data">
-            <input type="file" name="file">
-            <button type="submit" name="submit">Upload</button>
-          </form>
+          <h2>Your visualisation</h2>
+          <p class="lead">Add visualisation here</p>
         </div>
       </div>
     </div>
   </section>
+  
+    <section id="save">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 mx-auto">
+          <h2>Save your visualisation</h2>
+          <p class="lead">Add save button here</p>
+          <ul>
+
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
 
   <!-- Footer -->
   <footer class="py-5 bg-dark">
