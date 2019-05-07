@@ -89,7 +89,7 @@
           <input type="file" id="uploadBtn"/>
           <button type="submit" id="visNodeLinkBtn">Visualize</button>
           <!-- creating canvas of 500 by 500 pixels -->
-          <canvas id="network" width="500" height="500"></canvas>
+          <canvas id="node-link" width="1000" height="1000"></canvas>
         </div>
       </div>
     </div>
@@ -114,6 +114,9 @@
 
   <!-- Lib for visualizations (D3.js) -->
   <script src="https://d3js.org/d3.v5.min.js"></script>
+
+  <!-- Lib for small parts of D3.js (Colorscheme). Can be made redundant? -->
+  <script src="https://d3js.org/d3.v4.min.js"></script>
 
   <!-- Script for visualizations -->
   <script src="js/vis.js"></script>

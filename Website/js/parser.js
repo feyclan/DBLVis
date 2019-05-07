@@ -1,14 +1,14 @@
 /*
   @author: Sebastiaan Eddy Gerritsen
-  @date: 05-06-2019
+  @date: 07-05-2019 (dd/mm/yyyy)
   @comment: Code for parsing csv files to files usable by the d3.js library.
 */
 //Global variables
-var tempLinks = [];
-var tempNodes = [];
+var tempLinks;
+var tempNodes;
 
-var d3GraphNodes = [];
-var d3GraphLinks = [];
+var d3GraphNodes;
+var d3GraphLinks;
 //Event handler for uploading file
 document.getElementById('uploadBtn').onchange = function(){
     //Select file
@@ -19,6 +19,8 @@ document.getElementById('uploadBtn').onchange = function(){
 
 //Parser for CSV to JSON
 function parserCSV(csvFile){
+    tempLinks = [];
+    tempNodes = [];
     Papa.parse(csvFile, {
         //Separate thread for parsing, so the website stays responsive.
         worker: true,
@@ -40,32 +42,47 @@ function parserCSV(csvFile){
 
 //Parser that converts the JSON format to one for D3 NodeLink diagrams.
 function parserNodeLink(){
+    d3GraphNodes = [];
+    d3GraphLinks = [];
     //Correction necessary due to format of Papa Parse. (Array inside array, so remove outer one)
     tempNodes = tempNodes[0];
+    //var tempNodes = [];
     for(i = 0; i < tempNodes.length; i++) {
-
-        d3GraphNodes.push({
-           "name" : tempNodes[i]
-        });
+        if(tempNodes[i] !== "") {
+            d3GraphNodes.push({
+                "name": tempNodes[i]
+            });
+        }
     }
     //Outside for loop to increase performance
     var tempLinksLength = tempLinks.length;
+    //Remembers which sources have already parsed. (This prevents the same nodes to link 2 times)
+    var sourceMem = [];
     for(i = 0; i < tempLinksLength ; i++) {
         //Convert object to key value pairs ex: {"key":value,...} -> [[key,value],...]
         var tempLinkArr = Object.entries(tempLinks[i][0]);
 
         //Outside for loop to increase performance
         var tempLinkArrLength = tempLinkArr.length;
-        /*
-         J is set to two because first 2 key value pairs are irrelevant. These contain the source and value to itself.
-         (Which is always 1)
-        */
-        for(j = 2; j < tempLinkArrLength-1; j++){
-            d3GraphLinks.push({
-                "source" : tempLinkArr[0][1],
-                "target" : tempLinkArr[j][0],
-                "value"  : tempLinkArr[j][1]
-            });
+        for(j = 0; j < tempLinkArrLength-1; j++){
+            //Check if zero
+            let isZero = tempLinkArr[j][1] === 0;
+            //Check if target empty
+            let isEmptyTarget = tempLinkArr[j][0]; //Returns false if true
+            //Check if target has already been source. (duplicate)
+            let isDuplicate = sourceMem.includes(tempLinkArr[j][0]);
+            //Check if target is equal to source.
+            let isEqual = tempLinkArr[0][1] === tempLinkArr[j][0];
+
+
+            if(!isZero&&isEmptyTarget&&!isDuplicate&&!isEqual) {
+                d3GraphLinks.push({
+                    "source": tempLinkArr[0][1],
+                    "target": tempLinkArr[j][0],
+                    "value": tempLinkArr[j][1]
+                });
+            }
         }
+        sourceMem.push(tempLinkArr[0][1]);
     }
 }
