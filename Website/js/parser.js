@@ -42,7 +42,6 @@ function parserCSV(csvFile){
 function parserNodeLink(){
     //Correction necessary due to format of Papa Parse. (Array inside array, so remove outer one)
     tempNodes = tempNodes[0];
-    //var tempNodes = [];
     for(i = 0; i < tempNodes.length; i++) {
 
         d3GraphNodes.push({
