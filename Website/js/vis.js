@@ -7,7 +7,7 @@ function drawNodeLinkGraph() {
     graph.nodes = d3GraphNodes;
     graph.links = d3GraphLinks;
 
-    var canvas = d3.select("#network"),
+    var canvas = d3.select("#node-link"),
         height = canvas.attr("height"),
         width = canvas.attr("width"),
 
