@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Force Node-Link graph</title>
+</head>
+<body>
+
+  <h1>Force Node-link graph</h1>
+
+  <script src="https://d3js.org/d3-force.v1.min.js"></script>
+  <script src="https://d3js.org/d3.v4.min.js"></script> <!-- using d3.js library-->
+  <canvas id="node-link" width="1000" height="1000"></canvas> <!-- creating canvas of 1000 by 1000 pixels -->
+  
+
+<script>
+
+//defininf variables
+var canvas = d3.select("#node-link"),
+    height = canvas.attr("height"),//give height attribute to canvas
+  width = canvas.attr("width"),//give width attribute to canvas
+  radius = 4, //setting radius of nodes
+  colorNodes = "#FFC300", //color of nodes
+  colorEdges = "#123", //color of edges
+  strength = -50,//change the strength between nodes
+  transparancy = 1.00,//change tranparancy of nodes
+  ctx = canvas.node().getContext("2d");//make a 2d graph
+//end of defining variables
+
+
+  simulation = d3.forceSimulation()
+    .force("x", d3.forceX(width/2)) //put graph in the middle of x-axis of canvas
+    .force("y", d3.forceY(height/2))//put graph in the middle of y-axis of canvas
+    .force("collide", d3.forceCollide(radius+1)) //do not let the nodes collide and give an even distance between nodes
+    .force("charge", d3.forceManyBody()
+      .strength(strength))//causes nodes in the graph to repel each other
+    .force("link", d3.forceLink()//strength between edges
+      .id(function(d){ return d.name; }));
+
+
+  var transform = d3.zoomIdentity;
+
+d3.json("VotacionesSenado2017.json", function(err, graph){
+  if (err) throw err; //loading .json - file
+
+  function initGraph(tempData){
+    function zoomed() { //the function for zooming
+      transform = d3.event.transform;
+      update(); //redraws the nodes after zooming
+    }
+
+    d3.select(canvas)
+        .call(d3.drag()
+              .subject(dragsubject)
+              .on("start", dragstarted)
+              .on("drag", dragged)
+              .on("end",dragended))
+
+        .call(d3.zoom()
+              .scaleExtent([1 / 10, 8]) //limits for the zoom
+              .on("zoom", zoomed)) //calls the zoomed() func on the canvas
+  }
+
+  simulation.nodes(graph.nodes);
+    simulation.force("link")
+      .links(graph.links);
+    simulation.on("tick", update);
+
+    canvas.call(d3.drag()
+                .container(canvas.node())
+                .subject(dragsubject)
+                .on("start", startedTheDragging)
+                .on("drag", dragging)
+                .on("end", resetDrag));
+
+    canvas.call(d3.zoom()
+                .scaleExtent([1, 10])
+                .on("zoom", zoomed));
+
+
+  function update(){
+    ctx.clearRect(0, 0, width, height); //clearing drawing
+        
+        //updating edges
+    ctx.beginPath();
+    ctx.globalAlpha = transparancy; //giving transparancy to edges
+    ctx.strokeStyle = colorEdges; //colour of edges/clusters
+    graph.links.forEach(drawLink); //for each node perform this action
+    ctx.stroke(); //draw each link without filling
+
+    //updating nodes
+    ctx.beginPath();
+    ctx.globalAlpha = 1.0; //giving transparancy to nodes
+    graph.nodes.forEach(drawNode); //for each node perform this action
+    ctx.fill(); //draw each node
+  }
+  
+    //got inspiration for these functions from https://bl.ocks.org/mbostock/ad70335eeef6d167bc36fd3c04378048
+  function dragsubject() {
+    return simulation.find(d3.event.x, d3.event.y);//make it possible to drag nodes
+  }
+
+
+}); 
+
+//function to draw a node
+function drawNode(d){
+  ctx.fillStyle = colorNodes; //Fill nodes with color
+  ctx.moveTo(d.x, d.y);
+  ctx.arc(d.x, d.y, radius, 0, 2 * Math.PI);
+}
+
+
+//function to draw a edges
+function drawLink(l){
+  ctx.moveTo(l.source.x, l.source.y);//startpoint
+  ctx.lineTo(l.target.x, l.target.y);//endpoint
+}
+
+//got inspiration for these functions from https://bl.ocks.org/mbostock/ad70335eeef6d167bc36fd3c04378048
+function startedTheDragging() {
+  if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+  d3.event.subject.fx = d3.event.subject.x;//save x-location before you change location of node
+  d3.event.subject.fy = d3.event.subject.y;//save y-location before you change location of node
+  console.log(d3.event.subject);//print in console which node you are dragging
+}
+
+function dragging() {
+  d3.event.subject.fx = d3.event.x;//save new x-location after you change location of node
+  d3.event.subject.fy = d3.event.y;//save new y-location after you change location of node
+}
+
+function resetDrag() {
+  if (!d3.event.active) simulation.alphaTarget(0);
+  d3.event.subject.fx = null;//reset new x-location to old x-location
+  d3.event.subject.fy = null;//reset new y-location to old y-location
+}
+
+function zoomed() {
+  ctx.save();
+  ctx.clearRect(0, 0, width, height);
+  ctx.translate(d3.event.transform.x, d3.event.transform.y);
+  ctx.scale(d3.event.transform.k, d3.event.transform.k);
+  update();
+  ctx.restore();
+}
+
+
+</script>
+
+</body>
+</html>
