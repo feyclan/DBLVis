@@ -7,6 +7,8 @@
 
 	<h1>Force Node-link graph</h1>
 
+	<p id="demo"></p>
+
 	<script src="https://d3js.org/d3.v4.min.js"></script> <!-- using d3.js library-->
 	<canvas id="node-link" width="1000" height="1000"></canvas> <!-- creating canvas of 1000 by 1000 pixels -->
 	
@@ -95,6 +97,7 @@ function startedTheDragging() {
   d3.event.subject.fx = d3.event.subject.x;//save x-location before you change location of node
   d3.event.subject.fy = d3.event.subject.y;//save y-location before you change location of node
   console.log(d3.event.subject);//print in console which node you are dragging
+  document.getElementById("demo").innerHTML = "Selected node: " + d3.event.subject.name + " (" + d3.event.subject.party + ")";
 }
 
 function dragging() {
