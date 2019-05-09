@@ -13,24 +13,27 @@
 
 <script>
 
+//defininf variables
 var canvas = d3.select("#node-link"),
-    height = canvas.attr("height"),
-	width = canvas.attr("width"),
-	
-	r = 3, //setting radius of nodes
-
-	color = d3.scaleOrdinal(d3.schemeCategory20), //defining colourscheme for nodes
-
-	ctx = canvas.node().getContext("2d");
+    height = canvas.attr("height"),//give height attribute to canvas
+	width = canvas.attr("width"),//give width attribute to canvas
+	radius = 4, //setting radius of nodes
+	colorNodes = "#FFC300", //color of nodes
+	colorEdges = "#123", //color of edges
+	strength = -50,//change the strength between nodes
+	transparancy = 0.03,//change tranparancy of nodes
+	ctx = canvas.node().getContext("2d");//make a 2d graph
+//end of defining variables
 
 	simulation = d3.forceSimulation()
 		.force("x", d3.forceX(width/2)) //put graph in the middle of x-axis of canvas
 		.force("y", d3.forceY(height/2))//put graph in the middle of y-axis of canvas
-		.force("collide", d3.forceCollide(r+1)) //do not let the nodes collide
+		.force("collide", d3.forceCollide(radius+1)) //do not let the nodes collide and give an even distance between nodes
 		.force("charge", d3.forceManyBody()
-			.strength(-20))
-		.force("link", d3.forceLink()
+			.strength(strength))//causes nodes in the graph to repel each other
+		.force("link", d3.forceLink()//strength between edges
 			.id(function(d){ return d.name; }));
+
 
 d3.json("VotacionesSenado2017.json", function(err, graph){
 	if (err) throw err; //loading .json - file
@@ -40,71 +43,69 @@ d3.json("VotacionesSenado2017.json", function(err, graph){
     	.links(graph.links);
     simulation.on("tick", update);
 
-    //got these functions from https://bl.ocks.org/mbostock/ad70335eeef6d167bc36fd3c04378048
-    canvas
-      .call(d3.drag()
-          .container(canvas.node())
-          .subject(dragsubject)
-          .on("start", dragstarted)
-          .on("drag", dragged)
-          .on("end", dragended));
+    canvas.call(d3.drag()
+          			.container(canvas.node())
+          			.subject(dragsubject)
+          			.on("start", startedTheDragging)
+          			.on("drag", dragging)
+          			.on("end", resetDrag));
 
     //drawing
 	function update(){
-		ctx.clearRect(0, 0, width, height); // clearing drawing
+		ctx.clearRect(0, 0, width, height); //clearing drawing
         
         //updating edges
 		ctx.beginPath();
-		ctx.globalAlpha = 0.03; //giving transparancy to edges
-		ctx.strokeStyle = "#632"; //colour of edges/clusters
+		ctx.globalAlpha = transparancy; //giving transparancy to edges
+		ctx.strokeStyle = colorEdges; //colour of edges/clusters
 		graph.links.forEach(drawLink); //for each node perform this action
 		ctx.stroke(); //draw each link without filling
 
 		//updating nodes
+		ctx.beginPath();
 		ctx.globalAlpha = 1.0; //giving transparancy to nodes
 		graph.nodes.forEach(drawNode); //for each node perform this action
+		ctx.fill(); //draw each node
 		
 	}
 	
-    //got these functions from https://bl.ocks.org/mbostock/ad70335eeef6d167bc36fd3c04378048
+    //got inspiration for these functions from https://bl.ocks.org/mbostock/ad70335eeef6d167bc36fd3c04378048
 	function dragsubject() {
-    return simulation.find(d3.event.x, d3.event.y);
+    return simulation.find(d3.event.x, d3.event.y);//make it possible to drag nodes
   }
 
 }); 
 
 //function to draw a node
 function drawNode(d){
-	ctx.beginPath();
-	ctx.fillStyle = color(d.party); //Fill nodes with color
+	ctx.fillStyle = colorNodes; //Fill nodes with color
 	ctx.moveTo(d.x, d.y);
-	ctx.arc(d.x, d.y, r, 0, 2 * Math.PI);
-	ctx.fill(); //draw each node
+	ctx.arc(d.x, d.y, radius, 0, 2 * Math.PI);
 }
 
 //function to draw a edges
 function drawLink(l){
-	ctx.moveTo(l.source.x, l.source.y); //startpoint
+	ctx.moveTo(l.source.x, l.source.y);//startpoint
 	ctx.lineTo(l.target.x, l.target.y);//endpoint
 }
 
-//got these functions from https://bl.ocks.org/mbostock/ad70335eeef6d167bc36fd3c04378048
-function dragstarted() {
+//got inspiration for these functions from https://bl.ocks.org/mbostock/ad70335eeef6d167bc36fd3c04378048
+function startedTheDragging() {
   if (!d3.event.active) simulation.alphaTarget(0.3).restart();
-  d3.event.subject.fx = d3.event.subject.x;
-  d3.event.subject.fy = d3.event.subject.y;
+  d3.event.subject.fx = d3.event.subject.x;//save x-location before you change location of node
+  d3.event.subject.fy = d3.event.subject.y;//save y-location before you change location of node
   console.log(d3.event.subject);//print in console which node you are dragging
 }
 
-function dragged() {
-  d3.event.subject.fx = d3.event.x;
-  d3.event.subject.fy = d3.event.y;
+function dragging() {
+  d3.event.subject.fx = d3.event.x;//save new x-location after you change location of node
+  d3.event.subject.fy = d3.event.y;//save new y-location after you change location of node
 }
 
-function dragended() {
+function resetDrag() {
   if (!d3.event.active) simulation.alphaTarget(0);
-  d3.event.subject.fx = null;
-  d3.event.subject.fy = null;
+  d3.event.subject.fx = null;//reset new x-location to old x-location
+  d3.event.subject.fy = null;//reset new y-location to old y-location
 }
 
 </script>
