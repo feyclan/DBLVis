@@ -9,22 +9,24 @@ function drawNodeLinkGraph() {
     graph.nodes = d3GraphNodes;
     graph.links = d3GraphLinks;
 
+    //defining variables
     var canvas = d3.select("#node-link"),
-        height = canvas.attr("height"),
-        width = canvas.attr("width"),
-
-        r = 3, //setting radius of nodes
-
-        color = d3.scaleOrdinal(d3.schemeCategory20), //defining colourscheme for nodes
-
-        ctx = canvas.node().getContext("2d");
+    height = canvas.attr("height"),//give height attribute to canvas
+    width = canvas.attr("width"),//give width attribute to canvas
+    radius = 4, //setting radius of nodes
+    colorNodes = "#FFC300", //color of nodes
+    colorEdges = "#123", //color of edges
+    strength = -50,//change the strength between nodes
+    transparancy = 0.03,//change tranparancy of nodes
+    ctx = canvas.node().getContext("2d");//make a 2d graph
+    //end of defining variables
 
     simulation = d3.forceSimulation()
         .force("x", d3.forceX(width/2)) //put graph in the middle of x-axis of canvas
         .force("y", d3.forceY(height/2))//put graph in the middle of y-axis of canvas
         .force("collide", d3.forceCollide(r+1)) //do not let the nodes collide
         .force("charge", d3.forceManyBody()
-            .strength(-20))
+            .strength(strength))
         .force("link", d3.forceLink()
             .id(function(d){ return d.name; }));
 
@@ -70,8 +72,8 @@ function drawNodeLinkGraph() {
 
             //updating edges
             ctx.beginPath();
-            ctx.globalAlpha = 0.03; //giving transparancy to edges
-            ctx.strokeStyle = "#632"; //colour of edges/clusters
+            ctx.globalAlpha = transparancy; //giving transparancy to edges
+            ctx.strokeStyle = colorEdges; //colour of edges/clusters
             graph.links.forEach(drawLink); //for each node perform this action
             ctx.stroke(); //draw each link without filling
 
@@ -106,21 +108,21 @@ function drawNodeLinkGraph() {
 //got these functions from https://bl.ocks.org/mbostock/ad70335eeef6d167bc36fd3c04378048
     function dragstarted() {
         if (!d3.event.active) simulation.alphaTarget(0.3).restart();
-        d3.event.subject.fx = d3.event.subject.x;
-        d3.event.subject.fy = d3.event.subject.y;
+        d3.event.subject.fx = d3.event.subject.x;//save x-location before you change location of node
+        d3.event.subject.fy = d3.event.subject.y;//save y-location before you change location of node
         console.log(d3.event.subject);//print in console which node you are dragging
     }
 
     function dragged() {
-        d3.event.subject.fx = d3.event.x;
-        d3.event.subject.fy = d3.event.y;
-    }
+        d3.event.subject.fx = d3.event.x;//save new x-location after you change location of node
+        d3.event.subject.fy = d3.event.y;//save new y-location after you change location of node
 
     function dragended() {
         if (!d3.event.active) simulation.alphaTarget(0);
-        d3.event.subject.fx = null;
-        d3.event.subject.fy = null;
+        d3.event.subject.fx = null;//reset new x-location to old x-location
+        d3.event.subject.fy = null;//reset new y-location to old y-location
     }
+    //@author: Lyuben Petrov
     function zoomed() {
         ctx.save();
         ctx.clearRect(0, 0, width, height);
