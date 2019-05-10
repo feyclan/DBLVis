@@ -3,6 +3,8 @@ document.getElementById('visNodeLinkBtn').addEventListener('click', function () 
 });
 
 function drawNodeLinkGraph() {
+    var transform = d3.zoomIdentity;
+
     var graph = {};
     graph.nodes = d3GraphNodes;
     graph.links = d3GraphLinks;
@@ -26,6 +28,24 @@ function drawNodeLinkGraph() {
         .force("link", d3.forceLink()
             .id(function(d){ return d.name; }));
 
+
+    function initGraph(tempData){
+        function zoomed() { //the function for zooming
+            transform = d3.event.transform;
+            update(); //redraws the nodes after zooming
+        }
+
+        d3.select(canvas)
+            .call(d3.drag()
+                .subject(dragsubject)
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end",dragended))
+
+            .call(d3.zoom()
+                .scaleExtent([1 / 10, 8]) //limits for the zoom
+                .on("zoom", zoomed)) //calls the zoomed() func on the canvas
+    }
         simulation.nodes(graph.nodes);
         simulation.force("link")
             .links(graph.links);
@@ -39,6 +59,10 @@ function drawNodeLinkGraph() {
                 .on("start", dragstarted)
                 .on("drag", dragged)
                 .on("end", dragended));
+
+    canvas.call(d3.zoom()
+        .scaleExtent([1, 10])
+        .on("zoom", zoomed));
 
         //drawing
         function update(){
@@ -96,6 +120,14 @@ function drawNodeLinkGraph() {
         if (!d3.event.active) simulation.alphaTarget(0);
         d3.event.subject.fx = null;
         d3.event.subject.fy = null;
+    }
+    function zoomed() {
+        ctx.save();
+        ctx.clearRect(0, 0, width, height);
+        ctx.translate(d3.event.transform.x, d3.event.transform.y);
+        ctx.scale(d3.event.transform.k, d3.event.transform.k);
+        update();
+        ctx.restore();
     }
 
 }
