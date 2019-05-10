@@ -85,4 +85,5 @@ function parserNodeLink(){
         }
         sourceMem.push(tempLinkArr[0][1]);
     }
+    $('#visNodeLinkBtn').removeAttr("disabled");
 }

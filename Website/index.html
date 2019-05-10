@@ -81,13 +81,15 @@
         <div class="col-lg-8 mx-auto">
           <h2>Upload your .csv file</h2>
           <p class="lead">Choose a file and upload!</p>
+          <!-- Temporarily removed to avoid confusion.
           <form action="upload.php" method="POST" enctype="multipart/form-data">
             <input type="file" name="file">
             <button type="submit" name="submit">Upload</button>
           </form>
+          -->
           <!-- Temporary buttons & canvas for testing purposes -->
           <input type="file" id="uploadBtn"/>
-          <button type="submit" id="visNodeLinkBtn">Visualize</button>
+          <button type="submit" id="visNodeLinkBtn" disabled>Visualize</button>
           <!-- creating canvas of 500 by 500 pixels -->
           <canvas id="node-link" width="1000" height="1000"></canvas>
         </div>
