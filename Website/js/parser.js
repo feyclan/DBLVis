@@ -31,7 +31,7 @@ function parserCSV(csvFile){
             //Push rows of data from csv for the info about links between nodes.
             tempLinks.push(row.data);
             //Only push the information about the nodes once.
-            (tempNodes.length) ? (console.log('0')): tempNodes.push(row.meta.fields);
+            if(!tempNodes.length){tempNodes.push(row.meta.fields)}
         },
         complete: function() {
             //Once the csv file is parsed to JSON, move on to parser for node-link diagram.
