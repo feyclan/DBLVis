@@ -1,2 +1,0 @@
-# DBLVis
-DBL HTI + Webtech
