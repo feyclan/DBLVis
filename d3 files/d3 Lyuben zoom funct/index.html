@@ -22,7 +22,7 @@ var canvas = d3.select("#node-link"),
   colorNodes = "#FFC300", //color of nodes
   colorEdges = "#123", //color of edges
   strength = -50,//change the strength between nodes
-  transparancy = 1.00,//change tranparancy of nodes
+  transparancy = 0.03,//change tranparancy of nodes
   ctx = canvas.node().getContext("2d");//make a 2d graph
 //end of defining variables
 
@@ -43,7 +43,7 @@ d3.json("VotacionesSenado2017.json", function(err, graph){
   if (err) throw err; //loading .json - file
 
   function initGraph(tempData){
-    function zoomed() { //the function for zooming
+    function zoom() { //the function for zooming
       transform = d3.event.transform;
       update(); //redraws the nodes after zooming
     }
@@ -57,7 +57,7 @@ d3.json("VotacionesSenado2017.json", function(err, graph){
 
         .call(d3.zoom()
               .scaleExtent([1 / 10, 8]) //limits for the zoom
-              .on("zoom", zoomed)) //calls the zoomed() func on the canvas
+              .on("zoom", zoom)) //calls the zoom() func on the canvas
   }
 
   simulation.nodes(graph.nodes);
@@ -74,7 +74,7 @@ d3.json("VotacionesSenado2017.json", function(err, graph){
 
     canvas.call(d3.zoom()
                 .scaleExtent([1, 10])
-                .on("zoom", zoomed));
+                .on("zoom", zoom));
 
 
   function update(){
@@ -135,7 +135,8 @@ function resetDrag() {
   d3.event.subject.fy = null;//reset new y-location to old y-location
 }
 
-function zoomed() {
+//@author lyuben
+function zoom() {
   ctx.save();
   ctx.clearRect(0, 0, width, height);
   ctx.translate(d3.event.transform.x, d3.event.transform.y);
