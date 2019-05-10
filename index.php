@@ -132,7 +132,7 @@ session_start();
     <script>
             if("<?php echo $_SESSION['uploadMsg']; ?>" === "File uploaded"){
                 document.getElementById('uploadMsgSuccess').style.display = "block";
-            } else if(<?php if($_SESSION['uploadISSET']){echo $_SESSION['uploadISSET'];}else{echo "1";} ?>) {
+            } else if(<?php if($_SESSION['uploadISSET']){echo $_SESSION['uploadISSET'];}else{echo "0";} ?>) {
                 document.getElementById('uploadMsgFail').style.display = "block";
             }
 
