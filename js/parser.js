@@ -4,8 +4,8 @@
   @comment: Code for parsing csv files to files usable by the d3.js library.
 */
 //Global variables
-let tempLinks, tempNodes;
-let d3Graph, d3GraphNodes, d3GraphLinks;
+let tempGraphLinks, tempGraphNodes, tempMatrixLinks, tempMatrixNodes;
+let d3Graph, d3GraphNodes, d3GraphLinks, d3Matrix, d3MatrixNodes, d3MatrixLinks;
 //Default parser setting variables
 let setWorker, setHeader, setDynamicTyping, setMode;
 setWorker = false;
@@ -15,16 +15,24 @@ setMode = false;
 
 //Event handler for uploading file
 document.getElementById('parserBtn').addEventListener('click', function () {
+    init();
+});
+
+function init(){
+    //Make settings unchangeable during process
+    $('#header').attr("disabled", true);
+    $('#dynamicTyping').attr("disabled", true);
+    $('#worker').attr("disabled", true);
+    $('#typeSelect').attr("disabled", true);
     //Set settings according to checkboxes
     setHeader = document.getElementById("header").checked;
     setDynamicTyping = document.getElementById("dynamicTyping").checked;
     setWorker = document.getElementById("worker").checked;
-    setMode = document.getElementById("fastMode").checked;
     //Show progress bar
     document.getElementById('progressBar').style.display = "block";
     //Select file and parse
     loadDoc();
-});
+}
 
 //Load data.csv into csvFile
 function loadDoc() {
@@ -41,27 +49,42 @@ function loadDoc() {
     xhr.send();
 }
 
+function selector() {
+    switch(Number($("#typeSelect option:selected").val())){
+        case 1:
+            parserNodeLink();
+            //parserAdjacencyMatrix();
+            break;
+        case 2:
+            parserNodeLink();
+            break;
+        case 3:
+            //parserAdjacencyMatrix();
+            break;
+    }
+
+}
+
 //Parser for CSV to JSON
 function parserCSV(csvFile){
-    tempLinks = [];
-    tempNodes = [];
+    tempGraphLinks = [];
+    tempGraphNodes = [];
     Papa.parse(csvFile, {
         //Separate thread for parsing, so the website stays responsive.
         worker: setWorker,
         header: setHeader,
-        fastMode: setMode,
         //Auto detect numbers (Otherwise they stay strings)
         dynamicTyping: setDynamicTyping,
         step: function(row){
             //Push rows of data from csv for the info about links between nodes.
-            tempLinks.push(row.data);
+            tempGraphLinks.push(row.data);
             //Only push the information about the nodes once.
-            (tempNodes.length) ? (console.log('0')): tempNodes.push(row.meta.fields);
+            if(!tempGraphNodes.length){tempGraphNodes.push(row.meta.fields)}
         },
         complete: function() {
             document.getElementById('progress').style.width = "50%";
-            //Once the csv file is parsed to JSON, move on to parser for node-link diagram.
-            parserNodeLink();
+            //Once the csv file is parsed to JSON, move on to selector.
+            selector();
         },
         error: function () {
             document.getElementById('parserMsgFail').style.display = "block";
@@ -75,13 +98,13 @@ function parserNodeLink(){
     d3GraphNodes = [];
     d3GraphLinks = [];
     //Correction necessary due to format of Papa Parse. (Array inside array, so remove outer one)
-    tempNodes = tempNodes[0];
+    tempGraphNodes = tempGraphNodes[0];
     try {
-        for (i = 0; i < tempNodes.length; i++) {
+        for (i = 0; i < tempGraphNodes.length; i++) {
             //Empty nodes are skipped
-            if (tempNodes[i] !== "") {
+            if (tempGraphNodes[i] !== "") {
                 d3GraphNodes.push({
-                    "name": tempNodes[i]
+                    "name": tempGraphNodes[i]
                 });
             }
         }
@@ -90,12 +113,72 @@ function parserNodeLink(){
         return;
     }
     //Outside for loop to increase performance
-    var tempLinksLength = tempLinks.length;
+    var tempLinksLength = tempGraphLinks.length;
     //Remembers which sources have already parsed. (This prevents the same nodes to link 2 times)
     var sourceMem = [];
     for(i = 0; i < tempLinksLength ; i++) {
         //Convert object to key value pairs ex: {"key":value,...} -> [[key,value],...]
-        var tempLinkArr = Object.entries(tempLinks[i][0]);
+        var tempLinkArr = Object.entries(tempGraphLinks[i][0]);
+
+        //Outside for loop to increase performance
+        var tempLinkArrLength = tempLinkArr.length;
+        for(j = 0; j < tempLinkArrLength-1; j++){
+            //Check if zero
+            let isZero = tempLinkArr[j][1] === 0;
+            //Check if target empty
+            let isEmptyTarget = tempLinkArr[j][0]; //Returns false if true
+            //Check if target has already been source. (duplicate)
+            let isDuplicate = sourceMem.includes(tempLinkArr[j][0]);
+            //Check if target is equal to source.
+            let isEqual = tempLinkArr[0][1] === tempLinkArr[j][0];
+
+
+            if(!isZero&&isEmptyTarget&&!isDuplicate&&!isEqual) {
+                d3GraphLinks.push({
+                    "source": tempLinkArr[0][1],
+                    "target": tempLinkArr[j][0],
+                    "value": tempLinkArr[j][1]
+                });
+            }
+        }
+        sourceMem.push(tempLinkArr[0][1]);
+    }
+    // Store result in Graph object
+    d3Graph = {
+        nodes : d3GraphNodes,
+        links : d3GraphLinks
+    };
+    document.getElementById('progress').style.width = "70%";
+    storeJSON();
+}
+
+//Parser that converts the JSON format to one for D3 Adjacency Matrices.
+function parserAdjacencyMatrix(){
+    d3Matrix = [];
+    d3MatrixNodes = [];
+    d3MatrixLinks = [];
+    //Correction necessary due to format of Papa Parse. (Array inside array, so remove outer one)
+    tempMatrixNodes = tempMatrixNodes[0];
+    try {
+        for (i = 0; i < tempMatrixNodes.length; i++) {
+            //Empty nodes are skipped
+            if (tempMatrixNodes[i] !== "") {
+                d3MatrixNodes.push({
+                    "name": tempMatrixNodes[i]
+                });
+            }
+        }
+    } catch(e) {
+        document.getElementById('parserMsgFail').style.display = "block";
+        return;
+    }
+    //Outside for loop to increase performance
+    var tempLinksLength = tempMatrixLinks.length;
+    //Remembers which sources have already parsed. (This prevents the same nodes to link 2 times)
+    var sourceMem = [];
+    for(i = 0; i < tempLinksLength ; i++) {
+        //Convert object to key value pairs ex: {"key":value,...} -> [[key,value],...]
+        var tempLinkArr = Object.entries(tempMatrixLinks[i][0]);
 
         //Outside for loop to increase performance
         var tempLinkArrLength = tempLinkArr.length;
@@ -140,6 +223,10 @@ function storeJSON() {
             document.getElementById('parserMsgSuccess').style.display = "block";
             document.getElementById('parserMsgFail').style.display = "none";
             document.getElementById('progress').style.width = "100%";
+            $('#header').removeAttr("disabled");
+            $('#dynamicTyping').removeAttr("disabled");
+            $('#worker').removeAttr("disabled");
+            $('#typeSelect').removeAttr("disabled");
         },
         failure: function() {
             document.getElementById('parserMsgFail').style.display = "block";

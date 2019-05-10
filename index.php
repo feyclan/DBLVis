@@ -72,8 +72,21 @@ session_start();
                         <div class="col-sm-10">
                             <div class="card">
                                 <div class="card-body">
-                                    <p class="card-text">Parser settings</p>
+                                    <p class="card-text">Parser settings &nbsp;&nbsp;<i class="fas fa-question-circle" id="parserSetInfo" data-toggle="modal" data-target="#parserModal"></i></p>
                                     <hr>
+                                    <div class="form-check-inline">
+                                        <label class="sr-only" for="typeSelect">Type</label>
+                                        <div class="input-group mb-2">
+                                            <div class="input-group-prepend">
+                                                <div class="input-group-text">Type</div>
+                                            </div>
+                                            <select class="custom-select mr-sm-2" id="typeSelect">
+                                                <option value="1" selected>All</option>
+                                                <option value="2">Node Link</option>
+                                                <option value="3">Adjacency Matrix</option>
+                                            </select>
+                                        </div>
+                                    </div>
                                     <div class="form-check-inline">
                                         <input class="form-check-input" type="checkbox" value="" id="header" checked>
                                         <label class="form-check-label" for="header">
@@ -90,12 +103,6 @@ session_start();
                                         <input class="form-check-input" type="checkbox" value="" id="worker" checked>
                                         <label class="form-check-label" for="worker">
                                             Worker
-                                        </label>
-                                    </div>
-                                    <div class="form-check-inline">
-                                        <input class="form-check-input" type="checkbox" value="" id="fastMode">
-                                        <label class="form-check-label" for="fastMode">
-                                            Fast Mode
                                         </label>
                                     </div>
                                 </div>
@@ -115,6 +122,48 @@ session_start();
             </div>
             <div class="alert alert-warning col-sm-3" role="alert" id="parserMsgFail">
                 <p>File failed to parse</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for information about parser -->
+    <div class="modal fade" id="parserModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Parser setting information</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <dl class="row">
+                        <dt class="col-sm-3">Type</dt>
+                        <dd class="col-sm-9">
+                            Select type of parse for visualisations, when all is selected the data is parsed for every
+                            type of data visualisation (slower).
+                        </dd>
+                        <dt class="col-sm-3">Header</dt>
+                        <dd class="col-sm-9">
+                            If true, the first row of parsed data will be interpreted as field names.
+                        </dd>
+
+                        <dt class="col-sm-3">Dynamic Typing</dt>
+                        <dd class="col-sm-9">
+                            If true, numeric and boolean data will be converted to their type instead of remaining strings.
+                            Numeric data must conform to the definition of a decimal literal.
+                        </dd>
+
+                        <dt class="col-sm-3">Worker</dt>
+                        <dd class="col-sm-9">
+                            Whether or not to use a worker thread.
+                            Using a worker will keep your page reactive, but may be slightly slower.
+                        </dd>
+                    </dl>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
             </div>
         </div>
     </div>

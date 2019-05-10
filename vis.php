@@ -30,7 +30,7 @@ session_start();
         <ul class="list-unstyled">
             <li><a href="index.php"><i class="fas fa-home"></i><div>Home</div></a></li>
             <li><a href="vis.php"><i class="fas fa-chart-bar"></i><div>Visualisations</div></a></li>
-            <li><a  href="settings.html"><i class="fas fa-cog"></i><div>Settings</div></a></li>
+            <li><a  href="settings.php"><i class="fas fa-cog"></i><div>Settings</div></a></li>
             <!-- Button for navigation bar collapse <li id="sidebarCollapse"><a><i class="fas fa-bars"></i></a></li>-->
         </ul>
     </nav>
@@ -131,6 +131,7 @@ session_start();
 <!-- D3 libraries -->
 <script src="https://d3js.org/d3.v5.min.js"></script>
 <script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://d3js.org/d3.v2.min.js"></script>
 
 <!-- Visualisation Script -->
 <script src="js/vis.js"></script>
