@@ -60,9 +60,9 @@ function drawNodeLinkGraph() {
                 .on("drag", dragged)
                 .on("end", dragended));
 
-    canvas.call(d3.zoom()
-        .scaleExtent([1, 10])
-        .on("zoom", zoomed));
+        canvas.call(d3.zoom()
+            .scaleExtent([1, 10])
+            .on("zoom", zoomed));
 
         //drawing
         function update(){
