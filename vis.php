@@ -131,7 +131,6 @@ session_start();
 <!-- D3 libraries -->
 <script src="https://d3js.org/d3.v5.min.js"></script>
 <script src="https://d3js.org/d3.v4.min.js"></script>
-<script src="https://d3js.org/d3.v2.min.js"></script>
 
 <!-- Visualisation Script -->
 <script src="js/vis.js"></script>
