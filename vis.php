@@ -30,8 +30,6 @@ session_start();
         <ul class="list-unstyled">
             <li><a href="index.php"><i class="fas fa-home"></i><div>Home</div></a></li>
             <li><a href="vis.php"><i class="fas fa-chart-bar"></i><div>Visualisations</div></a></li>
-            <li><a  href="settings.php"><i class="fas fa-cog"></i><div>Settings</div></a></li>
-            <!-- Button for navigation bar collapse <li id="sidebarCollapse"><a><i class="fas fa-bars"></i></a></li>-->
         </ul>
     </nav>
 
@@ -41,6 +39,7 @@ session_start();
         <!-- Visualisation Card-->
         <div class="card text-center mb-3">
             <div class="card-header text-right">
+                <!-- Button that triggers visualisation -->
                 <button class="btn btn-primary" id="visGraph">
                     Visualize
                 </button>
@@ -116,6 +115,7 @@ session_start();
             </div>
             <div class="collapse" id="visualisation">
                 <div class="card-body">
+                    <div id="visDiv"></div>
                     <canvas id="visCanvas" width="1000" height="1000"></canvas>
                 </div>
             </div>
@@ -131,16 +131,8 @@ session_start();
 <!-- D3 libraries -->
 <script src="https://d3js.org/d3.v5.min.js"></script>
 <script src="https://d3js.org/d3.v4.min.js"></script>
-
 <!-- Visualisation Script -->
 <script src="js/vis.js"></script>
 
 </body>
 </html>
-
-<!-- Button that either shows or hides navigation bar
-<button type="button" id="sidebarOnMobile" class="btn btn-info">
-    <i class="fas fa-bars"></i>
-    <span>Toggle Sidebar</span>
-</button>
--->

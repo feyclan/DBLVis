@@ -49,6 +49,7 @@ function loadDoc() {
     xhr.send();
 }
 
+// Activates parsers specified in settings
 function selector() {
     switch(Number($("#typeSelect option:selected").val())){
         case 1:
@@ -220,9 +221,11 @@ function storeJSON() {
         url: 'php/json_handler.php',
         data: { data: JSON.stringify(d3Graph) },
         success: function () {
+            //Display relevant message
             document.getElementById('parserMsgSuccess').style.display = "block";
             document.getElementById('parserMsgFail').style.display = "none";
             document.getElementById('progress').style.width = "100%";
+            //Make settings changeable again
             $('#header').removeAttr("disabled");
             $('#dynamicTyping').removeAttr("disabled");
             $('#worker').removeAttr("disabled");

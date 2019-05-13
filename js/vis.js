@@ -1,15 +1,4 @@
-//Global variables
-//var gHeight, gWidth;
-
-
 document.getElementById('visGraph').addEventListener('click', function () {
-    //Set variables
-    //gHeight = document.getElementById('height-form').value;
-    //gWidth = document.getElementById('width-form').value;
-    //Set canvas
-    //document.getElementById('visCanvas').style.width = gWidth;
-    //document.getElementById('visCanvas').style.height = gHeight;
-
     drawNodeLinkGraph();
 });
 
@@ -110,21 +99,21 @@ function drawNodeLinkGraph() {
         d3.event.subject.fy = null;//reset new y-location to old y-location
     }
 }
-
+/*
 function drawAdjacencyMatrix(){
     var margin = {top: 150, right: 0, bottom: 10, left: 150},
         width = 1000,
         height = 1000;
-    var x = d3.scale.ordinal().rangeBands([0, width]),
+    var x = d3.scaleOrdinal().range.bandwidth([0, width]),
         z = d3.scale.linear().domain([0, 4]).clamp(true),
-        c = d3.scale.category10().domain(d3.range(10));
-    var svg = d3.select("body").append("svg")
+        c = d3.scaleOrdinal(d3.schemeCategory10).domain(d3.range(10));
+    var svg = d3.select("#visDiv").append("svg")
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
         .style("margin-right", -margin.left + "px")
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-    d3.json("uploads/parsed/data_parsed_node-link.json", function(data) {
+    d3.json("uploads/parsed/test.json", function(data) {
         var matrix = [],
             nodes = data.nodes,
             n = nodes.length;
@@ -165,7 +154,7 @@ function drawAdjacencyMatrix(){
             .attr("x2", width);
         row.append("text")
             .attr("x", -6)
-            .attr("y", x.rangeBand() / 2)
+            .attr("y", x.range.bandwidth() / 2)
             .attr("dy", ".32em")
             .attr("text-anchor", "end")
             .text(function(d, i) { return nodes[i].name; });
@@ -178,7 +167,7 @@ function drawAdjacencyMatrix(){
             .attr("x1", -width);
         column.append("text")
             .attr("x", 6)
-            .attr("y", x.rangeBand() / 2)
+            .attr("y", x.range.bandwidth() / 2)
             .attr("dy", ".32em")
             .attr("text-anchor", "start")
             .text(function(d, i) { return nodes[i].name; });
@@ -188,8 +177,8 @@ function drawAdjacencyMatrix(){
                 .enter().append("rect")
                 .attr("class", "cell")
                 .attr("x", function(d) { return x(d.x); })
-                .attr("width", x.rangeBand())
-                .attr("height", x.rangeBand())
+                .attr("width", x.range.bandwidth())
+                .attr("height", x.range.bandwidth())
                 .style("fill-opacity", function(d) { return z(d.z); })
                 .style("fill", function(d) { return nodes[d.x].group == nodes[d.y].group ? c(nodes[d.x].group) : null; })
                 .on("mouseover", mouseover)
@@ -225,3 +214,5 @@ function drawAdjacencyMatrix(){
         }, 5000);
     });
 }
+
+ */
