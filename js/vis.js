@@ -66,7 +66,7 @@ function drawNodeLinkGraph() {
         };
         document.getElementById('center_YSliderOutput').onchange = function () {
             forceProperties.center.y = document.getElementById("center_YSliderOutput").value;
-            document.getElementById("YSliderOutput-label").textContent = forceProperties.center.x;
+            document.getElementById("YSliderOutput-label").textContent = forceProperties.center.y;
             updateAll();
         };
         document.getElementById('chargeCheck').onchange = function () {
