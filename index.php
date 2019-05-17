@@ -29,7 +29,6 @@ session_start();
             <ul class="list-unstyled">
                 <li><a href="index.php"><i class="fas fa-home"></i><div>Home</div></a></li>
                 <li><a href="vis.php"><i class="fas fa-chart-bar"></i><div>Visualisations</div></a></li>
-                <!-- Button for navigation bar collapse (redundant) <li id="sidebarCollapse"><a><i class="fas fa-bars"></i></a></li>-->
             </ul>
         </nav>
 

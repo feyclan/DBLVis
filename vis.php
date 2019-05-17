@@ -6,6 +6,20 @@ session_start();
 <!doctype html>
 <html lang="en">
 <head>
+    <style>
+        /* SVG styles */
+        svg {
+            flex-basis: 100%;
+            min-width: 200px;
+        }
+        .links line {
+            stroke: #aaa;
+        }
+        .nodes circle {
+            pointer-events: all;
+        }
+
+    </style>
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -43,36 +57,109 @@ session_start();
                 <button class="btn btn-primary" id="visGraph">
                     Visualize
                 </button>
-                <a class="btn btn-primary" data-toggle="collapse" href="#settings" role="button" aria-expanded="false" aria-controls="settings">
+                <a class="btn btn-primary disabled" id="settingsBtn" data-toggle="collapse" href="#settings" role="button" aria-expanded="false" aria-controls="settings">
                     <i class="fas fa-wrench"></i>
                 </a>
-                <a class="btn btn-primary" data-toggle="collapse" href="#info" role="button" aria-expanded="false" aria-controls="info">
+                <a class="btn btn-primary disabled" id="infoBtn" data-toggle="collapse" href="#info" role="button" aria-expanded="false" aria-controls="info">
                     <i class="fas fa-info"></i>
                 </a>
-                <a class="btn btn-primary" data-toggle="collapse" href="#visualisation" role="button" aria-expanded="false" aria-controls="visualisation">
+                <a class="btn btn-primary" id="visBtn" data-toggle="collapse" href="#visualisation" role="button" aria-expanded="false" aria-controls="visualisation">
                     <i class="fas fa-expand"></i>
                 </a>
             </div>
             <div class="collapse" id="settings">
                 <div class="card-body">
                     <form>
-                        <div class="form-row align-items-center">
-                            <div class="col-auto">
-                                <label class="sr-only" for="width-form">Width</label>
-                                <div class="input-group mb-2">
-                                    <div class="input-group-prepend">
-                                        <div class="input-group-text">Width</div>
+                        <div class="form-row">
+                            <div class="col">
+                                <div class="card">
+                                    <div class="card-header">
+                                        Dimensions
                                     </div>
-                                    <input type="text" class="form-control" id="width-form" placeholder="px" value="">
+                                    <div class="card-body">
+                                        <label class="sr-only" for="width-form">Width</label>
+                                        <div class="input-group mb-2">
+                                            <div class="input-group-prepend">
+                                                <div class="input-group-text">Width</div>
+                                            </div>
+                                            <input type="text" class="form-control" id="width-form" placeholder="px" value="1000">
+                                        </div>
+                                        <label class="sr-only" for="height-form">Height</label>
+                                        <div class="input-group mb-2">
+                                            <div class="input-group-prepend">
+                                                <div class="input-group-text">Height</div>
+                                            </div>
+                                            <input type="text" class="form-control" id="height-form" placeholder="px" value="1000">
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-auto">
-                                <label class="sr-only" for="height-form">Height</label>
-                                <div class="input-group mb-2">
-                                    <div class="input-group-prepend">
-                                        <div class="input-group-text">Height</div>
+                            <div class="col">
+                                <div class="card">
+                                    <div class="card-header">
+                                        Center
                                     </div>
-                                    <input type="text" class="form-control" id="height-form" placeholder="px" value="">
+                                    <div class="card-body">
+                                        <div class="form-group">
+                                            <div class="input-group-text col-md-4 mb-2">X :	&nbsp;<div id="XSliderOutput-label">0.5</div></div>
+                                            <input type="range" class="custom-range" id="center_XSliderOutput" min="0" max="1" value=".5" step="0.01">
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="input-group-text col-md-4 mb-2">Y :	&nbsp;<div id="YSliderOutput-label">0.5</div></div>
+                                            <input type="range" class="custom-range" id="center_YSliderOutput" min="0" max="1" value=".5" step="0.01">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="card">
+                                    <div class="card-header">
+                                        Charge
+                                        <div class="custom-control custom-checkbox float-right">
+                                            <input type="checkbox" class="custom-control-input" id="chargeCheck" checked>
+                                            <label class="custom-control-label" for="chargeCheck"></label>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-group">
+                                            <div class="input-group-text col-md-10 mb-2">Strength :	&nbsp;<div id="StrengthSliderOutput-label">-50</div></div>
+                                            <input type="range" class="custom-range" id="charge_StrengthSliderOutput" min="-200" max="10" value="-50" step=".1">
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="input-group-text col-md-10 mb-2">Max Distance :	&nbsp;<div id="distanceMaxSliderOutput-label">2000</div></div>
+                                            <input type="range" class="custom-range" id="charge_distanceMaxSliderOutput" min="0" max="2000" value="2000" step=".1">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="card">
+                                    <div class="card-header">
+                                        Link
+                                        <div class="custom-control custom-checkbox float-right">
+                                            <input type="checkbox" class="custom-control-input" id="linkCheck" checked>
+                                            <label class="custom-control-label" for="linkCheck"></label>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-group">
+                                            <div class="input-group-text col-md-10 mb-2">Distance :	&nbsp;<div id="DistanceSliderOutput-label">30</div></div>
+                                            <input type="range" class="custom-range" id="link_DistanceSliderOutput" min="0" max="100" value="30" step="1">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="card">
+                                    <div class="card-header">
+                                        General
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input" id="collideCheck" checked>
+                                            <label class="custom-control-label" for="collideCheck">Collide</label>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -84,43 +171,43 @@ session_start();
                     <div class="card-body">
                         <h6 class="card-title">Node Information</h6>
                         <hr>
-                            <div class="form-row align-items-center">
-                                <div class="col-auto">
-                                    <div class="input-group mb-2">
-                                        <div class="input-group-prepend">
-                                            <div class="input-group-text">Name :</div>
-                                        </div>
-                                        <div class="form-control" id="nodeName"></div>
+                        <div class="form-row align-items-center">
+                            <div class="col-auto">
+                                <div class="input-group mb-2">
+                                    <div class="input-group-prepend">
+                                        <div class="input-group-text">Name :</div>
                                     </div>
-                                </div>
-                                <div class="col-auto">
-                                    <div class="input-group mb-2">
-                                        <div class="input-group-prepend">
-                                            <div class="input-group-text">X :</div>
-                                        </div>
-                                        <div class="form-control" id="nodeX"></div>
-                                    </div>
-                                </div>
-                                <div class="col-auto">
-                                    <div class="input-group mb-2">
-                                        <div class="input-group-prepend">
-                                            <div class="input-group-text">Y :</div>
-                                        </div>
-                                        <div class="form-control" id="nodeY"></div>
-                                    </div>
+                                    <div class="form-control" id="nodeName"></div>
                                 </div>
                             </div>
+                            <div class="col-auto">
+                                <div class="input-group mb-2">
+                                    <div class="input-group-prepend">
+                                        <div class="input-group-text">X :</div>
+                                    </div>
+                                    <div class="form-control" id="nodeX"></div>
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <div class="input-group mb-2">
+                                    <div class="input-group-prepend">
+                                        <div class="input-group-text">Y :</div>
+                                    </div>
+                                    <div class="form-control" id="nodeY"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="collapse" id="visualisation">
                 <div class="card-body">
-                    <div id="visDiv"></div>
-                    <canvas id="visCanvas" width="1000" height="1000"></canvas>
+                    <svg id="visSVG"></svg>
                 </div>
             </div>
         </div>
     </div>
+
 </div>
 
 <!-- jQuery first, then Popper.js, then Bootstrap JS -->
@@ -129,7 +216,6 @@ session_start();
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 
 <!-- D3 libraries -->
-<script src="https://d3js.org/d3.v5.min.js"></script>
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <!-- Visualisation Script -->
 <script src="js/vis.js"></script>

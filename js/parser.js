@@ -105,7 +105,8 @@ function parserNodeLink(){
             //Empty nodes are skipped
             if (tempGraphNodes[i] !== "") {
                 d3GraphNodes.push({
-                    "name": tempGraphNodes[i]
+                    "id": tempGraphNodes[i],
+                    "group" : 1
                 });
             }
         }
@@ -165,7 +166,7 @@ function parserAdjacencyMatrix(){
             //Empty nodes are skipped
             if (tempMatrixNodes[i] !== "") {
                 d3MatrixNodes.push({
-                    "name": tempMatrixNodes[i]
+                    "id": tempMatrixNodes[i]
                 });
             }
         }
