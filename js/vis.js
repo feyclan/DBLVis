@@ -1,6 +1,9 @@
 // Global standard value init.
 var svgWidth = 1000;
 var svgHeight = 1000;
+var nodeColor = '#007bff';
+var linkColor = '#D0D0D0';
+var linkOpacity = 0.5;
 
 forceProperties = {
     //are not resettable in window
@@ -117,10 +120,23 @@ function drawNodeLinkGraph() {
             forceProperties.collide.enabled = !!$('#linkCheck:checked').val();
             updateAll();
         };
+        document.getElementById('style_nodeColor').onchange = function () {
+            nodeColor ='#' + document.getElementById("style_nodeColor").value;
+            updateAll();
+        };
+        document.getElementById('style_linkColor').onchange = function () {
+            linkColor ='#' + document.getElementById("style_linkColor").value;
+            updateAll();
+        };
+        document.getElementById('style_linkOpacity').onchange = function () {
+            linkOpacity = document.getElementById("style_linkOpacity").value;
+            document.getElementById("style_linkOpacity-label").textContent = linkOpacity;
+            updateAll();
+        };
     } catch (e) {
         
     }
-    //loading .json - file
+    //loading .json - file data_parsed_node-link
     d3.json("uploads/parsed/miserables.json", function(error, _graph) {
         if (error) throw error;
         graph = _graph;
@@ -191,15 +207,17 @@ function drawNodeLinkGraph() {
 
         link = svg.append("g")
             .attr("class", "links")
-            .attr("stroke", "red")
+            .style("stroke-width", 1.5)
+            .style("stroke", linkColor)
             .selectAll("line")
             .data(graph.links)
             .enter().append("line");
+            //.style("opacity", 0.1);
 
         node = svg.append("g")
             .attr("stroke", "#fff")
             .attr("stroke-width", 0.5)
-            .attr("fill", "blue")
+            .attr("fill", nodeColor)
             .attr("class", "nodes")
             .selectAll("circle")
             .data(graph.nodes)
@@ -215,11 +233,13 @@ function drawNodeLinkGraph() {
     function updateDisplay() {
         node
             .attr("r", forceProperties.collide.radius)
-            .attr("stroke-width", 0.5);
+            .attr("stroke-width", 0.5)
+            .attr("fill", nodeColor);
 
         link
-            .attr("stroke-width", 1.5)
-            .attr("opacity", 0.2);
+            .style("stroke-width", 1.5)
+            .style("stroke", linkColor)
+            .attr("opacity", linkOpacity);
     }
 
 // update the display positions after each simulation tick

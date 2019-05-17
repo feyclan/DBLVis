@@ -71,7 +71,7 @@ session_start();
                 <div class="card-body">
                     <form>
                         <div class="form-row">
-                            <div class="col">
+                            <div class="col-sm">
                                 <div class="card">
                                     <div class="card-header">
                                         Dimensions
@@ -94,25 +94,25 @@ session_start();
                                     </div>
                                 </div>
                             </div>
-                            <div class="col">
-                                <div class="card">
+                            <div class="col-sm">
+                                <div class="card mb-2">
                                     <div class="card-header">
                                         Center
                                     </div>
                                     <div class="card-body">
                                         <div class="form-group">
-                                            <div class="input-group-text col-md-4 mb-2">X :	&nbsp;<div id="XSliderOutput-label">0.5</div></div>
+                                            <div class="input-group-text col-md-8 mb-2">X :	&nbsp;<div id="XSliderOutput-label">0.5</div></div>
                                             <input type="range" class="custom-range" id="center_XSliderOutput" min="0" max="1" value=".5" step="0.01">
                                         </div>
                                         <div class="form-group">
-                                            <div class="input-group-text col-md-4 mb-2">Y :	&nbsp;<div id="YSliderOutput-label">0.5</div></div>
+                                            <div class="input-group-text col-md-8 mb-2">Y :	&nbsp;<div id="YSliderOutput-label">0.5</div></div>
                                             <input type="range" class="custom-range" id="center_YSliderOutput" min="0" max="1" value=".5" step="0.01">
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col">
-                                <div class="card">
+                            <div class="col-sm">
+                                <div class="card mb-2">
                                     <div class="card-header">
                                         Charge
                                         <div class="custom-control custom-checkbox float-right">
@@ -122,18 +122,18 @@ session_start();
                                     </div>
                                     <div class="card-body">
                                         <div class="form-group">
-                                            <div class="input-group-text col-md-10 mb-2">Strength :	&nbsp;<div id="StrengthSliderOutput-label">-50</div></div>
+                                            <div class="input-group-text mb-2">Strength :	&nbsp;<div id="StrengthSliderOutput-label">-50</div></div>
                                             <input type="range" class="custom-range" id="charge_StrengthSliderOutput" min="-200" max="10" value="-50" step=".1">
                                         </div>
                                         <div class="form-group">
-                                            <div class="input-group-text col-md-10 mb-2">Max Distance :	&nbsp;<div id="distanceMaxSliderOutput-label">2000</div></div>
+                                            <div class="input-group-text mb-2">Max Distance :	&nbsp;<div id="distanceMaxSliderOutput-label">2000</div></div>
                                             <input type="range" class="custom-range" id="charge_distanceMaxSliderOutput" min="0" max="2000" value="2000" step=".1">
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col">
-                                <div class="card">
+                            <div class="col-sm">
+                                <div class="card mb-2">
                                     <div class="card-header">
                                         Link
                                         <div class="custom-control custom-checkbox float-right">
@@ -143,14 +143,14 @@ session_start();
                                     </div>
                                     <div class="card-body">
                                         <div class="form-group">
-                                            <div class="input-group-text col-md-10 mb-2">Distance :	&nbsp;<div id="DistanceSliderOutput-label">30</div></div>
+                                            <div class="input-group-text mb-2">Distance :	&nbsp;<div id="DistanceSliderOutput-label">30</div></div>
                                             <input type="range" class="custom-range" id="link_DistanceSliderOutput" min="0" max="100" value="30" step="1">
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col">
-                                <div class="card">
+                            <div class="col-sm">
+                                <div class="card mb-2">
                                     <div class="card-header">
                                         General
                                     </div>
@@ -158,6 +158,33 @@ session_start();
                                         <div class="custom-control custom-checkbox">
                                             <input type="checkbox" class="custom-control-input" id="collideCheck" checked>
                                             <label class="custom-control-label" for="collideCheck">Collide</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card mb-2">
+                                    <div class="card-header">
+                                        Styling
+                                    </div>
+                                    <div class="card-body">
+                                        <h6 class="card-title text-left">Nodes</h6>
+                                        <hr>
+                                        <div class="input-group mb-2">
+                                            <div class="input-group-prepend">
+                                                <div class="input-group-text">Color</div>
+                                            </div>
+                                            <input type="text" class="jscolor form-control" id="style_nodeColor" placeholder="#" value="007bff">
+                                        </div>
+                                        <h6 class="card-title text-left">Links</h6>
+                                        <hr>
+                                        <div class="input-group mb-2">
+                                            <div class="input-group-prepend">
+                                                <div class="input-group-text">Color</div>
+                                            </div>
+                                            <input type="text" class="jscolor form-control" id="style_linkColor" placeholder="#" value="D0D0D0">
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="input-group-text mb-2">Opacity :&nbsp;<div id="style_linkOpacity-label">0.5</div></div>
+                                            <input type="range" class="custom-range" id="style_linkOpacity" min="0" max="1" value=".5" step="0.01">
                                         </div>
                                     </div>
                                 </div>
@@ -219,6 +246,7 @@ session_start();
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <!-- Visualisation Script -->
 <script src="js/vis.js"></script>
-
+<!-- Color Picker -->
+<script src="js/jscolor.js"></script>
 </body>
 </html>
