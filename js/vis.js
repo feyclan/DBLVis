@@ -129,17 +129,33 @@ function drawNodeLinkGraph() {
     });
 
 
-//defining variables
-    var svg = d3.select("#visSVG")
-            .attr("width", svgWidth)
-            .attr("height", svgHeight),
-        width = svgWidth,
-        height = svgHeight,
-        simulation = d3.forceSimulation(),
-        graph,
-        link,
-        node;
-//defining variables
+// //defining variables
+//     var svg = d3.select("#visSVG")
+//             .attr("width", svgWidth)
+//             .attr("height", svgHeight),
+//         width = svgWidth,
+//         height = svgHeight,
+//         simulation = d3.forceSimulation(),
+//         graph,
+//         link,
+//         node;
+// //defining variables
+
+var svg = d3.select("#visSVG")
+    .append("svg")
+    .attr("width", "100%")
+    .attr("height", "100%")
+    .call(d3.zoom().on("zoom", function () { //zoom function
+    svg.attr("transform", d3.event.transform)
+ }))
+    .append("g")
+
+var width = svgWidth,
+    height = svgHeight,
+    simulation = d3.forceSimulation(),
+    graph,
+    link, 
+    node;
 
     function startSimulation() {
         simulation.nodes(graph.nodes);
