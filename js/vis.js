@@ -285,16 +285,19 @@ function interactiveGraph(index){
     document.getElementById('visGraph-' + index).addEventListener('click', function () {
         document.getElementById('settingsBtn-' + index).classList.remove("disabled");
         document.getElementById('infoBtn-' + index).classList.remove("disabled");
+        $('#visSVG-' + index).empty();
         drawNodeLinkGraph(index);
     });
-//Event Listeners for changing svg dimensions
+    //Event Listeners for changing svg dimensions
     document.getElementById('width-form-' + index).addEventListener('input', function () {
         svgWidth = document.getElementById('width-form-' + index).value;
+        $('#visSVG-' + index).empty();
         drawNodeLinkGraph(index);
     });
-//Event Listeners for changing svg dimensions
+    //Event Listeners for changing svg dimensions
     document.getElementById('height-form-' + index).addEventListener('input', function () {
         svgHeight = document.getElementById('height-form-' + index).value;
+        $('#visSVG-' + index).empty();
         drawNodeLinkGraph(index);
     });
 }
@@ -302,6 +305,7 @@ function interactiveGraph(index){
 
 
 function drawNodeLinkGraph(index) {
+
     //Event listeners for changing settings
     try {
         document.getElementById('center_X-' + index).onchange = function () {
