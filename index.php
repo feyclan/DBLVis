@@ -1,5 +1,5 @@
 <?php
-// Start the session
+// Start the session, needed for php to store variables.
 session_start();
 ?>
 
@@ -29,14 +29,12 @@ session_start();
             <ul class="list-unstyled">
                 <li><a href="index.php"><i class="fas fa-home"></i><div>Home</div></a></li>
                 <li><a href="vis.php"><i class="fas fa-chart-bar"></i><div>Visualisations</div></a></li>
-                <li><a href="settings.php"><i class="fas fa-cog"></i><div>Settings</div></a></li>
-                <!-- Button for navigation bar collapse <li id="sidebarCollapse"><a><i class="fas fa-bars"></i></a></li>-->
             </ul>
         </nav>
 
         <!-- Content of page -->
         <div id="content">
-            <!-- Upload Card-->
+            <!-- Upload Card -->
             <div class="card text-center mb-3">
                 <div class="card-body">
                     <h5 class="card-title">Welcome to Visualisation Studio</h5>
@@ -51,19 +49,21 @@ session_start();
                     </form>
                 </div>
             </div>
-            <!-- Success and error messages that show up after upload -->
+            <!-- Success and error messages that show after upload -->
             <div class="alert alert-success col-sm-3" role="alert" id="uploadMsgSuccess">
                 <?php echo $_SESSION['uploadMsg']; ?>
             </div>
             <div class="alert alert-warning col-sm-3" role="alert" id="uploadMsgFail">
                 <?php echo $_SESSION['uploadMsg']; ?>
             </div>
+            <!-- Parser Card -->
             <div class="card mb-3">
                 <div class="card-header text-center">File Parser</div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-sm-2">
                             <div class="card text-center border-0">
+                                <!-- Parse button -->
                                 <div class="card-body">
                                     <button class="btn btn-info" id="parserBtn">Parse</button>
                                 </div>
@@ -71,6 +71,7 @@ session_start();
                         </div>
                         <div class="col-sm-10">
                             <div class="card">
+                                <!-- Parser Settings -->
                                 <div class="card-body">
                                     <p class="card-text">Parser settings &nbsp;&nbsp;<i class="fas fa-question-circle" id="parserSetInfo" data-toggle="modal" data-target="#parserModal"></i></p>
                                     <hr>
@@ -109,6 +110,7 @@ session_start();
                             </div>
                         </div>
                     </div>
+                    <!-- Progress bar for parser -->
                     <div class="card-body" id="progressBar">
                         <hr>
                         <div class="progress">
@@ -117,6 +119,7 @@ session_start();
                     </div>
                 </div>
             </div>
+            <!-- Success and error messages that show after parser has finished -->
             <div class="alert alert-success col-sm-3" role="alert" id="parserMsgSuccess">
                 <p>Parsed File successfully.</p>
             </div>
@@ -194,11 +197,10 @@ session_start();
                 document.getElementById('fileLabel').textContent = document.getElementById('uploadBtn').files[0].name;
             }
     </script>
-
 </body>
 </html>
 
-<!-- Button that either shows or hides navigation bar
+<!-- Button that either shows or hides navigation bar (redundant)
 <button type="button" id="sidebarOnMobile" class="btn btn-info">
     <i class="fas fa-bars"></i>
     <span>Toggle Sidebar</span>

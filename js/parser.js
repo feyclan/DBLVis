@@ -49,6 +49,7 @@ function loadDoc() {
     xhr.send();
 }
 
+// Activates parsers specified in settings
 function selector() {
     switch(Number($("#typeSelect option:selected").val())){
         case 1:
@@ -104,7 +105,8 @@ function parserNodeLink(){
             //Empty nodes are skipped
             if (tempGraphNodes[i] !== "") {
                 d3GraphNodes.push({
-                    "name": tempGraphNodes[i]
+                    "id": tempGraphNodes[i],
+                    "group" : 1
                 });
             }
         }
@@ -164,7 +166,7 @@ function parserAdjacencyMatrix(){
             //Empty nodes are skipped
             if (tempMatrixNodes[i] !== "") {
                 d3MatrixNodes.push({
-                    "name": tempMatrixNodes[i]
+                    "id": tempMatrixNodes[i]
                 });
             }
         }
@@ -220,9 +222,11 @@ function storeJSON() {
         url: 'php/json_handler.php',
         data: { data: JSON.stringify(d3Graph) },
         success: function () {
+            //Display relevant message
             document.getElementById('parserMsgSuccess').style.display = "block";
             document.getElementById('parserMsgFail').style.display = "none";
             document.getElementById('progress').style.width = "100%";
+            //Make settings changeable again
             $('#header').removeAttr("disabled");
             $('#dynamicTyping').removeAttr("disabled");
             $('#worker').removeAttr("disabled");
