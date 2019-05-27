@@ -1,11 +1,15 @@
+// Import functions from other .js files, needed to build the GUI.
 import { rebuildColorPicker } from './jscolor.js';
+import { guiInit, guiOptionInit } from './guiBuilder.js';
 
 // Global standard value init.
-var svgWidth = 1000;
-var svgHeight = 1000;
-var nodeColor = '#007bff';
-var linkColor = '#D0D0D0';
-var linkOpacity = 0.5;
+var svgWidth = 1000,
+    svgHeight = 1000,
+    // Graph types that are not yet selected are 1, otherwise 0. [None, Node Link force, adjacency matrix]
+    typeAvailable = [0,1,1],
+    nodeColor = '#007bff',
+    linkColor = '#D0D0D0',
+    linkOpacity = 0.5;
 
 var forceProperties = {
     //are not resettable in window
@@ -44,10 +48,20 @@ var forceProperties = {
 };
 
 document.getElementById('addGraph').addEventListener('click', function () {
-    var index = addGraph();
-    interactiveGraph(index);
-    rebuildColorPicker();
+    addGraph();
 });
+
+//Select appropriate graph for global settings
+function typeSelector(index, type) {
+    switch(parseInt(type)){
+        case 2 :
+            drawNodeLinkGraph(index);
+        break;
+        case 3 :
+            drawAdjacencyMatrix(index);
+        break;
+    }
+}
 
 function addGraph(){
         // Finding total number of elements added
@@ -63,242 +77,55 @@ function addGraph(){
         if(total_element < max ){
             // Adding new div container after last occurance of element class
             $(".element:last").after("<div class='element' id='div-"+ nextIndex +"'></div>");
+            //Build GUI
+            guiInit(nextIndex);
+            //Disable graphs which are already selected.
+            for(let i = 0; i < typeAvailable.length; i++) {
+                if(typeAvailable[i] === 0) {
+                    document.getElementById('visTypeSelect-' + nextIndex).options[i].disabled = true;
+                }
+            }
 
-            // Adding element to <div>
-            $("#div-" + nextIndex).append(`
-            <!-- Visualisation Card-->
-        <div class="card text-center mb-3">
-            <div class="card-header text-right">
-                <div class="form-check-inline">
-                    <label class="sr-only" for="typeSelect">Type</label>
-                    <div class="input-group mb-2">
-                        <div class="input-group-prepend">
-                            <div class="input-group-text">Type</div>
-                        </div>
-                        <select class="custom-select mr-sm-2" id="typeSelect">
-                            <option value="1" selected>Node Link [Force]</option>
-                            <option value="2">Adjacency Matrix</option>
-                        </select>
-                    </div>
-               </div>
-                <!-- Button that triggers visualisation -->
-                <button class="btn btn-primary" id="visGraph-${nextIndex}">
-                    Visualize
-                </button>
-                <a class="btn btn-primary disabled" id="settingsBtn-${nextIndex}" data-toggle="collapse" href="#settings-${nextIndex}" role="button" aria-expanded="false" aria-controls="settings-${nextIndex}">
-                    <i class="fas fa-wrench"></i>
-                </a>
-                <a class="btn btn-primary disabled" id="infoBtn-${nextIndex}" data-toggle="collapse" href="#info-${nextIndex}" role="button" aria-expanded="false" aria-controls="info-${nextIndex}">
-                    <i class="fas fa-info"></i>
-                </a>
-                <a class="btn btn-primary" id="visBtn-${nextIndex}" data-toggle="collapse" href="#visualisation-${nextIndex}" role="button" aria-expanded="false" aria-controls="visualisation-${nextIndex}">
-                    <i class="fas fa-expand"></i>
-                </a>
-            </div>
-            <div class="collapse" id="settings-${nextIndex}">
-                <div class="card-body">
-                    <form>
-                        <div class="form-row">
-                            <div class="col-sm">
-                                <div class="card">
-                                    <div class="card-header">
-                                        Dimensions
-                                    </div>
-                                    <div class="card-body">
-                                        <label class="sr-only" for="width-form-${nextIndex}">Width</label>
-                                        <div class="input-group mb-2">
-                                            <div class="input-group-prepend">
-                                                <div class="input-group-text">Width</div>
-                                            </div>
-                                            <input type="text" class="form-control" id="width-form-${nextIndex}" placeholder="px" value="1000">
-                                        </div>
-                                        <label class="sr-only" for="height-form-${nextIndex}">Height</label>
-                                        <div class="input-group mb-2">
-                                            <div class="input-group-prepend">
-                                                <div class="input-group-text">Height</div>
-                                            </div>
-                                            <input type="text" class="form-control" id="height-form-${nextIndex}" placeholder="px" value="1000">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-sm">
-                                <div class="card mb-2">
-                                    <div class="card-header">
-                                        Center
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="form-group">
-                                            <div class="input-group-text col-md-8 mb-2">X :\t&nbsp;<div id="X-label-${nextIndex}">0.5</div></div>
-                                            <input type="range" class="custom-range" id="center_X-${nextIndex}" min="0" max="1" value=".5" step="0.01">
-                                        </div>
-                                        <div class="form-group">
-                                            <div class="input-group-text col-md-8 mb-2">Y :\t&nbsp;<div id="Y-label-${nextIndex}">0.5</div></div>
-                                            <input type="range" class="custom-range" id="center_Y-${nextIndex}" min="0" max="1" value=".5" step="0.01">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-sm">
-                                <div class="card mb-2">
-                                    <div class="card-header">
-                                        Charge
-                                        <div class="custom-control custom-checkbox float-right">
-                                            <input type="checkbox" class="custom-control-input" id="chargeCheck-${nextIndex}" checked>
-                                            <label class="custom-control-label" for="chargeCheck-${nextIndex}"></label>
-                                        </div>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="form-group">
-                                            <div class="input-group-text mb-2">Strength :\t&nbsp;<div id="Strength-label-${nextIndex}">-50</div></div>
-                                            <input type="range" class="custom-range" id="charge_Strength-${nextIndex}" min="-200" max="10" value="-50" step=".1">
-                                        </div>
-                                        <div class="form-group">
-                                            <div class="input-group-text mb-2">Max Distance :\t&nbsp;<div id="distanceMax-label-${nextIndex}">2000</div></div>
-                                            <input type="range" class="custom-range" id="charge_distanceMax-${nextIndex}" min="0" max="2000" value="2000" step=".1">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-sm">
-                                <div class="card mb-2">
-                                    <div class="card-header">
-                                        Link
-                                        <div class="custom-control custom-checkbox float-right">
-                                            <input type="checkbox" class="custom-control-input" id="linkCheck-${nextIndex}" checked>
-                                            <label class="custom-control-label" for="linkCheck-${nextIndex}"></label>
-                                        </div>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="form-group">
-                                            <div class="input-group-text mb-2">Distance :\t&nbsp;<div id="Distance-label-${nextIndex}">30</div></div>
-                                            <input type="range" class="custom-range" id="link_Distance-${nextIndex}" min="0" max="100" value="30" step="1">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-sm">
-                                <div class="card mb-2">
-                                    <div class="card-header">
-                                        General
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="custom-control custom-checkbox">
-                                            <input type="checkbox" class="custom-control-input" id="collideCheck-${nextIndex}" checked>
-                                            <label class="custom-control-label" for="collideCheck-${nextIndex}">Collide</label>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card mb-2">
-                                    <div class="card-header">
-                                        Styling
-                                    </div>
-                                    <div class="card-body">
-                                        <h6 class="card-title text-left">Nodes</h6>
-                                        <hr>
-                                        <div class="input-group mb-2">
-                                            <div class="input-group-prepend">
-                                                <div class="input-group-text">Color</div>
-                                            </div>
-                                            <input type="text" class="jscolor form-control" id="style_nodeColor-${nextIndex}" placeholder="#" value="007bff">
-                                        </div>
-                                        <h6 class="card-title text-left">Links</h6>
-                                        <hr>
-                                        <div class="input-group mb-2">
-                                            <div class="input-group-prepend">
-                                                <div class="input-group-text">Color</div>
-                                            </div>
-                                            <input type="text" class="jscolor form-control" id="style_linkColor-${nextIndex}" placeholder="#" value="D0D0D0">
-                                        </div>
-                                        <div class="form-group">
-                                            <div class="input-group-text mb-2">Opacity :&nbsp;<div id="style_linkOpacity-label-${nextIndex}">0.5</div></div>
-                                            <input type="range" class="custom-range" id="style_linkOpacity-${nextIndex}" min="0" max="1" value=".5" step="0.01">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            <div class="collapse" id="info-${nextIndex}">
-                <div class="card text-left">
-                    <div class="card-body">
-                        <h6 class="card-title">Node Information</h6>
-                        <hr>
-                        <div class="form-row align-items-center">
-                            <div class="col-auto">
-                                <div class="input-group mb-2">
-                                    <div class="input-group-prepend">
-                                        <div class="input-group-text">Name :</div>
-                                    </div>
-                                    <div class="form-control" id="nodeName-${nextIndex}"></div>
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <div class="input-group mb-2">
-                                    <div class="input-group-prepend">
-                                        <div class="input-group-text">X :</div>
-                                    </div>
-                                    <div class="form-control" id="nodeX-${nextIndex}"></div>
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <div class="input-group mb-2">
-                                    <div class="input-group-prepend">
-                                        <div class="input-group-text">Y :</div>
-                                    </div>
-                                    <div class="form-control" id="nodeY-${nextIndex}"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="collapse" id="visualisation-${nextIndex}">
-                <div class="card-body">
-                    <svg id="visSVG-${nextIndex}"></svg>
-                </div>
-            </div>
-        </div>
-            `);
+            document.getElementById('visTypeSelect-' + nextIndex).addEventListener('change', function () {
+                document.getElementById('visGraph-' + nextIndex).classList.remove("disabled");
+                document.getElementById('settingsBtn-' + nextIndex).classList.remove("disabled");
+                document.getElementById('visTypeSelect-' + nextIndex).disabled = true;
+
+
+                var sel = document.getElementById('visTypeSelect-' + nextIndex),
+                type = sel.options[sel.selectedIndex].value;
+                typeAvailable[type-1] = 0;
+
+                guiOptionInit(nextIndex, type).then(function (){
+                    interactiveGraph(nextIndex, type);
+                    rebuildColorPicker();
+                });
+
+            });
 
         }
-
-    // Remove element
-    $('.container').on('click','.remove',function(){
-
-        var id = this.id;
-        var split_id = id.split("_");
-        var deleteindex = split_id[1];
-
-        // Remove <div> with id
-        $("#div_" + deleteindex).remove();
-
-    });
-        return nextIndex;
 }
 
 
-function interactiveGraph(index){
+function interactiveGraph(index, type){
     //Event Listener to draw graph
     document.getElementById('visGraph-' + index).addEventListener('click', function () {
-        document.getElementById('settingsBtn-' + index).classList.remove("disabled");
         document.getElementById('infoBtn-' + index).classList.remove("disabled");
+        document.getElementById('visBtn-' + index).classList.remove("disabled");
         $('#visSVG-' + index).empty();
-        drawNodeLinkGraph(index);
+        typeSelector(index, type);
     });
     //Event Listeners for changing svg dimensions
     document.getElementById('width-form-' + index).addEventListener('input', function () {
         svgWidth = document.getElementById('width-form-' + index).value;
         $('#visSVG-' + index).empty();
-        drawNodeLinkGraph(index);
+        typeSelector(index, type);
     });
     //Event Listeners for changing svg dimensions
     document.getElementById('height-form-' + index).addEventListener('input', function () {
         svgHeight = document.getElementById('height-form-' + index).value;
         $('#visSVG-' + index).empty();
-        drawNodeLinkGraph(index);
+        typeSelector(index, type);
     });
 }
 
@@ -524,4 +351,120 @@ function drawNodeLinkGraph(index) {
         updateForces();
         updateDisplay();
     }
+}
+
+function drawAdjacencyMatrix(index) {
+    var margin_adj = {top: 150, right: 0, bottom: 10, left: 150},
+        width_adj = svgWidth,
+        height_adj = svgHeight;
+    var x_adj = d3.scaleBand().range([0, width_adj]),
+        z_adj = d3.scaleLinear().domain([0, 4]).clamp(true),
+        c_adj = d3.scaleOrdinal(d3.schemeCategory10).domain(d3.range(10));
+    var svg_adj = d3.select('#visSVG-' + index)
+        .attr("width", width_adj + margin_adj.left + margin_adj.right)
+        .attr("height", height_adj + margin_adj.top + margin_adj.bottom)
+        .style("margin-right", -margin_adj.left + "px")
+        .append("g")
+        .attr("transform", "translate(" + margin_adj.left + "," + margin_adj.top + ")");
+
+    d3.json("uploads/parsed/miserables_adj.json", function(data) {
+        var matrix_adj = [],
+            nodes_adj = data.nodes,
+            n = nodes_adj.length;
+        // Compute index per node.
+        nodes_adj.forEach(function(node, i) {
+            node.index = i;
+            node.count = 0;
+            matrix_adj[i] = d3.range(n).map(function(j) { return {x: j, y: i, z: 0}; });
+        });
+        // Convert links to matrix; count character occurrences.
+        data.links.forEach(function(link) {
+            matrix_adj[link.source][link.target].z += link.value;
+            matrix_adj[link.target][link.source].z += link.value;
+            //matrix[link.source][link.source].z += link.value;
+            //matrix[link.target][link.target].z += link.value;
+            nodes_adj[link.source].count += link.value;
+            nodes_adj[link.target].count += link.value;
+        });
+        // Precompute the orders.
+        var orders = {
+            name: d3.range(n).sort(function(a, b) { return d3.ascending(nodes_adj[a].name, nodes_adj[b].name); }),
+            count: d3.range(n).sort(function(a, b) { return nodes_adj[b].count - nodes_adj[a].count; }),
+            group: d3.range(n).sort(function(a, b) { return nodes_adj[b].group - nodes_adj[a].group; })
+        };
+        // The default sort order.
+        x_adj.domain(orders.name);
+        svg_adj.append("rect")
+            .attr("class", "background")
+            .attr("width", width_adj)
+            .attr("height", height_adj);
+        var row = svg_adj.selectAll(".row")
+            .data(matrix_adj)
+            .enter().append("g")
+            .attr("class", "row")
+            .attr("transform", function(d, i) { return "translate(0," + x_adj(i) + ")"; })
+            .each(row);
+        row.append("line")
+            .attr("x2", width_adj);
+        row.append("text")
+            .attr("x", -6)
+            .attr("y", x_adj.bandwidth() / 2)
+            .attr("dy", ".32em")
+            .attr("text-anchor", "end")
+            .text(function(d, i) { return nodes_adj[i].name; });
+        var column = svg_adj.selectAll(".column")
+            .data(matrix_adj)
+            .enter().append("g")
+            .attr("class", "column")
+            .attr("transform", function(d, i) { return "translate(" + x_adj(i) + ")rotate(-90)"; });
+        column.append("line")
+            .attr("x1", -width_adj);
+        column.append("text")
+            .attr("x", 6)
+            .attr("y", x_adj.bandwidth() / 2)
+            .attr("dy", ".32em")
+            .attr("text-anchor", "start")
+            .text(function(d, i) { return nodes_adj[i].name; });
+        function row(row) {
+            var cell = d3.select(this).selectAll(".cell")
+                .data(row.filter(function(d) { return d.z; }))
+                .enter().append("rect")
+                .attr("class", "cell")
+                .attr("x", function(d) { return x_adj(d.x); })
+                .attr("width", x_adj.bandwidth())
+                .attr("height", x_adj.bandwidth())
+                .style("fill-opacity", function(d) { return z_adj(d.z); })
+                .style("fill", function(d) { return nodes_adj[d.x].group === nodes_adj[d.y].group ? c_adj(nodes_adj[d.x].group) : null; })
+                .on("mouseover", mouseover)
+                .on("mouseout", mouseout);
+        }
+        function mouseover(p) {
+            d3.selectAll(".row text").classed("active", function(d, i) { return i === p.y; });
+            d3.selectAll(".column text").classed("active", function(d, i) { return i === p.x; });
+        }
+        function mouseout() {
+            d3.selectAll("text").classed("active", false);
+        }
+        d3.select("#order").on("change", function() {
+            clearTimeout(timeout);
+            order(this.value);
+        });
+        function order(value) {
+            x_adj.domain(orders[value]);
+            var t = svg_adj.transition().duration(2500);
+            t.selectAll(".row")
+                .delay(function(d, i) { return x_adj(i) * 4; })
+                .attr("transform", function(d, i) { return "translate(0," + x_adj(i) + ")"; })
+                .selectAll(".cell")
+                .delay(function(d) { return x_adj(d.x) * 4; })
+                .attr("x", function(d) { return x_adj(d.x); });
+            t.selectAll(".column")
+                .delay(function(d, i) { return x_adj(i) * 4; })
+                .attr("transform", function(d, i) { return "translate(" + x_adj(i) + ")rotate(-90)"; });
+        }
+        var timeout = setTimeout(function() {
+            order("group");
+            d3.select("#order").property("selectedIndex", 2).node().focus();
+        }, 5000);
+    });
 }

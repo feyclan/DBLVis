@@ -54,13 +54,13 @@ function selector() {
     switch(Number($("#typeSelect option:selected").val())){
         case 1:
             parserNodeLink();
-            //parserAdjacencyMatrix();
+            parserAdjacencyMatrix();
             break;
         case 2:
             parserNodeLink();
             break;
         case 3:
-            //parserAdjacencyMatrix();
+            parserAdjacencyMatrix();
             break;
     }
 
@@ -95,6 +95,9 @@ function parserCSV(csvFile){
 
 //Parser that converts the JSON format to one for D3 NodeLink diagrams.
 function parserNodeLink(){
+    document.getElementById('progress').style.width = "50%";
+
+    var graphType = 'nodelink';
     d3Graph = [];
     d3GraphNodes = [];
     d3GraphLinks = [];
@@ -106,7 +109,6 @@ function parserNodeLink(){
             if (tempGraphNodes[i] !== "") {
                 d3GraphNodes.push({
                     "id": tempGraphNodes[i],
-                    "group" : 1
                 });
             }
         }
@@ -151,11 +153,14 @@ function parserNodeLink(){
         links : d3GraphLinks
     };
     document.getElementById('progress').style.width = "70%";
-    storeJSON();
+    storeJSON(d3Graph, graphType);
 }
 
 //Parser that converts the JSON format to one for D3 Adjacency Matrices.
 function parserAdjacencyMatrix(){
+    document.getElementById('progress').style.width = "50%";
+
+    var graphType = 'matrix';
     d3Matrix = [];
     d3MatrixNodes = [];
     d3MatrixLinks = [];
@@ -211,16 +216,16 @@ function parserAdjacencyMatrix(){
         links : d3GraphLinks
     };
     document.getElementById('progress').style.width = "70%";
-    storeJSON();
+    storeJSON(d3Graph, graphType);
 }
 
 //Store Graph object in .JSON file on server.
-function storeJSON() {
+function storeJSON(graphData, graphType) {
     $.ajax
     ({
         type: "POST",
         url: 'php/json_handler.php',
-        data: { data: JSON.stringify(d3Graph) },
+        data: { data: JSON.stringify(graphData), action: graphType},
         success: function () {
             //Display relevant message
             document.getElementById('parserMsgSuccess').style.display = "block";

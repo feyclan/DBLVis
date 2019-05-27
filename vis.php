@@ -6,20 +6,7 @@ session_start();
 <!doctype html>
 <html lang="en">
 <head>
-    <style>
-        /* SVG styles */
-        svg {
-            flex-basis: 100%;
-            min-width: 200px;
-        }
-        .links line {
-            stroke: #aaa;
-        }
-        .nodes circle {
-            pointer-events: all;
-        }
 
-    </style>
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -32,24 +19,6 @@ session_start();
     <link rel="stylesheet" href="css/style.css">
     <title>Visualisation Studio</title>
 </head>
-<style>
-    svg {
-        border: 0px solid gray;
-    }
-    g.am-axis text {
-        font-size: 8px;
-    }
-
-    .domain {
-        fill: none;
-    }
-
-    .tick > line{
-        stroke: black;
-        stroke-width: 1px;
-        stroke-opacity: 0.25;
-    }
-</style>
 <body>
 
 <div class="wrapper">
@@ -62,7 +31,7 @@ session_start();
         <ul class="list-unstyled">
             <li><a href="index.php"><i class="fas fa-home"></i><div>Home</div></a></li>
             <li><a href="vis.php"><i class="fas fa-chart-bar"></i><div>Visualisations</div></a></li>
-            <li><a href="#" class="add" id="addGraph"><i class="fas fa-plus"></i><div>Add Graph</div></a></li>
+            <li><a class="add" id="addGraph"><i class="fas fa-plus"></i><div>Add Graph</div></a></li>
         </ul>
     </nav>
 
@@ -82,8 +51,9 @@ session_start();
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <!-- Color Picker -->
 <script src="js/jscolor.js" type="module"></script>
+<!-- GUI Builder Script -->
+<script src="js/guiBuilder.js" type="module"></script>
 <!-- Visualisation Script -->
 <script src="js/vis.js" type="module"></script>
-
 </body>
 </html>
