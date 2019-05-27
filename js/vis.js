@@ -210,7 +210,7 @@ function drawNodeLinkGraph(index) {
         
     }
     //loading .json - file data_parsed_node-link
-    d3.json("uploads/parsed/miserables.json", function(error, _graph) {
+    d3.json("uploads/parsed/data_parsed_node-link.json", function(error, _graph) {
         if (error) throw error;
         graph = _graph;
         startDisplay();
@@ -354,6 +354,7 @@ function drawNodeLinkGraph(index) {
 }
 
 function drawAdjacencyMatrix(index) {
+
     var margin_adj = {top: 150, right: 0, bottom: 10, left: 150},
         width_adj = svgWidth,
         height_adj = svgHeight;
@@ -377,23 +378,22 @@ function drawAdjacencyMatrix(index) {
             node.count = 0;
             matrix_adj[i] = d3.range(n).map(function(j) { return {x: j, y: i, z: 0}; });
         });
+
         // Convert links to matrix; count character occurrences.
         data.links.forEach(function(link) {
             matrix_adj[link.source][link.target].z += link.value;
             matrix_adj[link.target][link.source].z += link.value;
-            //matrix[link.source][link.source].z += link.value;
-            //matrix[link.target][link.target].z += link.value;
-            nodes_adj[link.source].count += link.value;
-            nodes_adj[link.target].count += link.value;
+            nodes_adj[link.source].count ++;
+            nodes_adj[link.target].count ++;
         });
         // Precompute the orders.
         var orders = {
-            name: d3.range(n).sort(function(a, b) { return d3.ascending(nodes_adj[a].name, nodes_adj[b].name); }),
+            id: d3.range(n).sort(function(a, b) { return d3.ascending(nodes_adj[a].id, nodes_adj[b].id); }),
             count: d3.range(n).sort(function(a, b) { return nodes_adj[b].count - nodes_adj[a].count; }),
             group: d3.range(n).sort(function(a, b) { return nodes_adj[b].group - nodes_adj[a].group; })
         };
         // The default sort order.
-        x_adj.domain(orders.name);
+        x_adj.domain(orders.id);
         svg_adj.append("rect")
             .attr("class", "background")
             .attr("width", width_adj)
@@ -411,7 +411,7 @@ function drawAdjacencyMatrix(index) {
             .attr("y", x_adj.bandwidth() / 2)
             .attr("dy", ".32em")
             .attr("text-anchor", "end")
-            .text(function(d, i) { return nodes_adj[i].name; });
+            .text(function(d, i) { return nodes_adj[i].id; });
         var column = svg_adj.selectAll(".column")
             .data(matrix_adj)
             .enter().append("g")
@@ -424,7 +424,7 @@ function drawAdjacencyMatrix(index) {
             .attr("y", x_adj.bandwidth() / 2)
             .attr("dy", ".32em")
             .attr("text-anchor", "start")
-            .text(function(d, i) { return nodes_adj[i].name; });
+            .text(function(d, i) { return nodes_adj[i].id; });
         function row(row) {
             var cell = d3.select(this).selectAll(".cell")
                 .data(row.filter(function(d) { return d.z; }))
