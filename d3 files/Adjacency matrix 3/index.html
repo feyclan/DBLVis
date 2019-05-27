@@ -3,7 +3,6 @@
 <meta charset="utf-8">
 <title>Adjacency-Matrix</title>
 <style>
-@import url(../style.css?aea6f0a);
 .background {
   fill: #eee;
 }
@@ -14,7 +13,7 @@ text.active {
   fill: red;
 }
 </style>
-<script src="//d3js.org/d3.v2.min.js" charset="utf-8"></script>
+<script src="//d3js.org/d3.v4.min.js" charset="utf-8"></script>
 <aside style="font-style:italic;
 				float:center;width:200px;
 				border:1px solid;
@@ -32,9 +31,11 @@ text.active {
 var margin = {top: 150, right: 0, bottom: 10, left: 150},
     width = 1000,
     height = 1000;
-var x = d3.scale.ordinal().rangeBands([0, width]),
-    z = d3.scale.linear().domain([0, 4]).clamp(true),
-    c = d3.scale.category10().domain(d3.range(10));
+var xScale = d3.scaleBand()
+    .range([0, width]);
+var x = xScale/*d3.scale.ordinal().rangeBands([0, width]) */,
+    z = d3.scaleLinear().domain([0, 4]).clamp(true),
+    c = d3.scaleOrdinal(d3.schemeCategory10).domain(d3.range(10));
 var svg = d3.select("body").append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
@@ -82,7 +83,7 @@ d3.json("data.json", function(data) {
       .attr("x2", width);
   row.append("text")
       .attr("x", -6)
-      .attr("y", x.rangeBand() / 2)
+      .attr("y", x.bandwidth() / 2)
       .attr("dy", ".32em")
       .attr("text-anchor", "end")
       .text(function(d, i) { return nodes[i].name; });
@@ -95,7 +96,7 @@ d3.json("data.json", function(data) {
       .attr("x1", -width);
   column.append("text")
       .attr("x", 6)
-      .attr("y", x.rangeBand() / 2)
+      .attr("y", x.bandwidth() / 2)
       .attr("dy", ".32em")
       .attr("text-anchor", "start")
       .text(function(d, i) { return nodes[i].name; });
@@ -105,8 +106,8 @@ d3.json("data.json", function(data) {
       .enter().append("rect")
         .attr("class", "cell")
         .attr("x", function(d) { return x(d.x); })
-        .attr("width", x.rangeBand())
-        .attr("height", x.rangeBand())
+        .attr("width", x.bandwidth())
+        .attr("height", x.bandwidth())
         .style("fill-opacity", function(d) { return z(d.z); })
         .style("fill", function(d) { return nodes[d.x].group == nodes[d.y].group ? c(nodes[d.x].group) : null; })
         .on("mouseover", mouseover)
