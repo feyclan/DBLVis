@@ -354,19 +354,16 @@ function drawNodeLinkGraph(index) {
 }
 
 function drawAdjacencyMatrix(index) {
-
-    var margin_adj = {top: 150, right: 0, bottom: 10, left: 150},
-        width_adj = svgWidth,
+    
+    var width_adj = svgWidth,
         height_adj = svgHeight;
     var x_adj = d3.scaleBand().range([0, width_adj]),
         z_adj = d3.scaleLinear().domain([0, 4]).clamp(true),
         c_adj = d3.scaleOrdinal(d3.schemeCategory10).domain(d3.range(10));
     var svg_adj = d3.select('#visSVG-' + index)
-        .attr("width", width_adj + margin_adj.left + margin_adj.right)
-        .attr("height", height_adj + margin_adj.top + margin_adj.bottom)
-        .style("margin-right", -margin_adj.left + "px")
-        .append("g")
-        .attr("transform", "translate(" + margin_adj.left + "," + margin_adj.top + ")");
+        .attr("width", width_adj )
+        .attr("height", height_adj)
+        .append("g");
 
     d3.json("uploads/parsed/miserables_adj.json", function(data) {
         var matrix_adj = [],
