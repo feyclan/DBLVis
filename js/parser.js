@@ -6,7 +6,7 @@
 //Global variables
 // Array that stores the index of every name in key value pairs [[name, index],...]
 let indexArray = [];
-let tempLinks, tempNodes;
+let tempLinks, tempNodes, tempNodesNew;
 let d3Graph, d3GraphNodes, d3GraphLinks, d3Matrix, d3MatrixNodes, d3MatrixLinks;
 //Default parser setting variables
 let setWorker, setHeader, setDynamicTyping, setMode;
@@ -104,13 +104,13 @@ function parserNodeLink(){
     d3GraphNodes = [];
     d3GraphLinks = [];
     //Correction necessary due to format of Papa Parse. (Array inside array, so remove outer one)
-    tempNodes = tempNodes[0];
+    tempNodesNew = tempNodes[0];
     try {
-        for (i = 0; i < tempNodes.length; i++) {
+        for (i = 0; i < tempNodesNew.length; i++) {
             //Empty nodes are skipped
-            if (tempNodes[i] !== "") {
+            if (tempNodesNew[i] !== "") {
                 d3GraphNodes.push({
-                    "id": tempNodes[i],
+                    "id": tempNodesNew[i],
                 });
             }
         }
@@ -167,14 +167,14 @@ function parserAdjacencyMatrix(){
     d3MatrixNodes = [];
     d3MatrixLinks = [];
     //Correction necessary due to format of Papa Parse. (Array inside array, so remove outer one)
-    tempNodes = tempNodes[0];
+    tempNodesNew = tempNodes[0];
 
 
-        for (i = 0; i < tempNodes.length; i++) {
+        for (i = 0; i < tempNodesNew.length; i++) {
             //Empty nodes are skipped
-            if (tempNodes[i] !== "") {
+            if (tempNodesNew[i] !== "") {
                 d3MatrixNodes.push({
-                    "id": tempNodes[i],
+                    "id": tempNodesNew[i],
                 });
             }
         }
@@ -201,11 +201,11 @@ function parserAdjacencyMatrix(){
 
             if(!isZero&&isEmptyTarget&&!isDuplicate&&!isEqual) {
                 d3MatrixLinks.push({
-                    "source": tempNodes.indexOf(tempLinkArr[0][1]),
-                    "target": tempNodes.indexOf(tempLinkArr[j][0]),
+                    "source": tempNodesNew.indexOf(tempLinkArr[0][1]),
+                    "target": tempNodesNew.indexOf(tempLinkArr[j][0]),
                     "value": tempLinkArr[j][1]
                 });
-                console.log(tempNodes.indexOf(tempLinkArr[0][1]));
+                console.log(tempNodesNew.indexOf(tempLinkArr[0][1]));
             }
         }
         sourceMem.push(tempLinkArr[0][1]);
