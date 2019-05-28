@@ -175,7 +175,6 @@ function parserAdjacencyMatrix(){
             if (tempNodes[i] !== "") {
                 d3MatrixNodes.push({
                     "id": tempNodes[i],
-                    "group" : 1
                 });
             }
         }
