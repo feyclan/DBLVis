@@ -354,7 +354,7 @@ function drawNodeLinkGraph(index) {
 }
 
 function drawAdjacencyMatrix(index) {
-    
+
     var width_adj = svgWidth,
         height_adj = svgHeight;
     var x_adj = d3.scaleBand().range([0, width_adj]),
@@ -365,9 +365,10 @@ function drawAdjacencyMatrix(index) {
         .attr("height", height_adj)
         .append("g");
 
-    d3.json("uploads/parsed/miserables_adj.json", function(data) {
+    d3.json("uploads/parsed/data_parsed_matrix.json", function(data) {
         var matrix_adj = [],
             nodes_adj = data.nodes,
+            links_adj  =data.links,
             n = nodes_adj.length;
         // Compute index per node.
         nodes_adj.forEach(function(node, i) {
@@ -376,23 +377,56 @@ function drawAdjacencyMatrix(index) {
             matrix_adj[i] = d3.range(n).map(function(j) { return {x: j, y: i, z: 0}; });
         });
 
+        /* Redundant Code [DO NOT REMOVE]
+        console.log(data.nodes);
+        console.log(data.links);
+
+        matrix_adj = new Array(n).fill(0).map(() => new Array(n).fill(0));
+        //Map values x = i, y = j.
+        for(let j = 0; j < n; j++){
+            for(let i = 0; i < n; i++){
+                matrix_adj[i][j] = {x: j, y: i, z: 0};
+            }
+        }
+
+        links_adj.forEach(function (link) {
+            if(matrix_adj[link.source][link.target] != null){
+                matrix_adj[link.source][link.target].z = link.value;
+            }
+        });
+
+        console.log(matrix_adj);
+
+        //Init Matrix
+        matrix_adj = new Array(n).fill(0).map(() => new Array(n).fill(0));
+        //Map values x = i, y = j.
+        for(let j = 0; j < n; j++){
+            for(let i = 0; i < n; i++){
+                matrix_adj[i][j] = {x: j, y: i, z: 4};
+            }
+        }
+
+ */
+
         // Convert links to matrix; count character occurrences.
         data.links.forEach(function(link) {
-            matrix_adj[link.source][link.target].z += link.value;
-            matrix_adj[link.target][link.source].z += link.value;
-            nodes_adj[link.source].count ++;
-            nodes_adj[link.target].count ++;
+            if(matrix_adj[link.source][link.target] != null) {
+                matrix_adj[link.source][link.target].z += link.value;
+                matrix_adj[link.target][link.source].z += link.value;
+                nodes_adj[link.source].count++;
+                nodes_adj[link.target].count++;
+            }
         });
+
         // Precompute the orders.
         var orders = {
             id: d3.range(n).sort(function(a, b) { return d3.ascending(nodes_adj[a].id, nodes_adj[b].id); }),
-            count: d3.range(n).sort(function(a, b) { return nodes_adj[b].count - nodes_adj[a].count; }),
-            group: d3.range(n).sort(function(a, b) { return nodes_adj[b].group - nodes_adj[a].group; })
+            count: d3.range(n).sort(function(a, b) { return nodes_adj[b].count - nodes_adj[a].count; })
         };
         // The default sort order.
         x_adj.domain(orders.id);
         svg_adj.append("rect")
-            .attr("class", "background")
+            .attr("class", "background-matrix")
             .attr("width", width_adj)
             .attr("height", height_adj);
         var row = svg_adj.selectAll(".row")
@@ -401,8 +435,8 @@ function drawAdjacencyMatrix(index) {
             .attr("class", "row")
             .attr("transform", function(d, i) { return "translate(0," + x_adj(i) + ")"; })
             .each(row);
-        row.append("line")
-            .attr("x2", width_adj);
+        //row.append("line")
+        //    .attr("x2", width_adj);
         row.append("text")
             .attr("x", -6)
             .attr("y", x_adj.bandwidth() / 2)
@@ -414,8 +448,8 @@ function drawAdjacencyMatrix(index) {
             .enter().append("g")
             .attr("class", "column")
             .attr("transform", function(d, i) { return "translate(" + x_adj(i) + ")rotate(-90)"; });
-        column.append("line")
-            .attr("x1", -width_adj);
+        //column.append("line")
+        //    .attr("x1", -width_adj);
         column.append("text")
             .attr("x", 6)
             .attr("y", x_adj.bandwidth() / 2)
@@ -431,7 +465,6 @@ function drawAdjacencyMatrix(index) {
                 .attr("width", x_adj.bandwidth())
                 .attr("height", x_adj.bandwidth())
                 .style("fill-opacity", function(d) { return z_adj(d.z); })
-                .style("fill", function(d) { return nodes_adj[d.x].group === nodes_adj[d.y].group ? c_adj(nodes_adj[d.x].group) : null; })
                 .on("mouseover", mouseover)
                 .on("mouseout", mouseout);
         }
@@ -460,7 +493,7 @@ function drawAdjacencyMatrix(index) {
                 .attr("transform", function(d, i) { return "translate(" + x_adj(i) + ")rotate(-90)"; });
         }
         var timeout = setTimeout(function() {
-            order("group");
+            order("count");
             d3.select("#order").property("selectedIndex", 2).node().focus();
         }, 5000);
     });
