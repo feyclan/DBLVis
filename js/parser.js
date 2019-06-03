@@ -125,7 +125,6 @@ function parserNodeLink(){
     for(i = 0; i < tempLinksLength ; i++) {
         //Convert object to key value pairs ex: {"key":value,...} -> [[key,value],...]
         var tempLinkArr = Object.entries(tempLinks[i][0]);
-
         //Outside for loop to increase performance
         var tempLinkArrLength = tempLinkArr.length;
         for(j = 0; j < tempLinkArrLength-1; j++){
@@ -217,6 +216,25 @@ function parserAdjacencyMatrix(){
     };
     document.getElementById('progress').style.width = "70%";
     storeJSON(d3Matrix, graphType);
+}
+
+function hierachicalGraph() {
+    var graphType = 'matrix';
+    d3Matrix = [];
+    d3MatrixNodes = [];
+    d3MatrixLinks = [];
+    //Correction necessary due to format of Papa Parse. (Array inside array, so remove outer one)
+    tempNodesNew = tempNodes[0];
+
+
+    for (i = 0; i < tempNodesNew.length; i++) {
+        //Empty nodes are skipped
+        if (tempNodesNew[i] !== "") {
+            d3MatrixNodes.push({
+                "id": tempNodesNew[i],
+            });
+        }
+    }
 }
 
 //Store Graph object in .JSON file on server.
