@@ -1,6 +1,7 @@
 // Import functions from other .js files, needed to build the GUI.
 import { rebuildColorPicker } from './jscolor.js';
 import { guiInit, guiOptionInit } from './guiBuilder.js';
+import { cluster} from './algo.js';
 
 // Global standard value init.
 var svgWidth = 1000,
@@ -399,20 +400,17 @@ function drawAdjacencyMatrix(index) {
         .append("g");
 
     d3.json("uploads/parsed/data_parsed_matrix.json", function(data) {
+        //data = cluster(data);
+        //console.log(data);
+        cluster(data);
+
         var matrix_adj = [],
             nodes_adj = data.nodes,
-            links_adj  =data.links,
+            links_adj = data.links,
             n = nodes_adj.length;
         // Compute index per node.
-        nodes_adj.forEach(function(node, i) {
-            node.index = i;
-            node.count = 0;
-            matrix_adj[i] = d3.range(n).map(function(j) { return {x: j, y: i, z: 0}; });
-        });
 
-        /* Redundant Code [DO NOT REMOVE]
-        console.log(data.nodes);
-        console.log(data.links);
+
 
         matrix_adj = new Array(n).fill(0).map(() => new Array(n).fill(0));
         //Map values x = i, y = j.
@@ -421,29 +419,9 @@ function drawAdjacencyMatrix(index) {
                 matrix_adj[i][j] = {x: j, y: i, z: 0};
             }
         }
-
+        // Convert links to matrix and count the occurrence of the node
         links_adj.forEach(function (link) {
             if(matrix_adj[link.source][link.target] != null){
-                matrix_adj[link.source][link.target].z = link.value;
-            }
-        });
-
-        console.log(matrix_adj);
-
-        //Init Matrix
-        matrix_adj = new Array(n).fill(0).map(() => new Array(n).fill(0));
-        //Map values x = i, y = j.
-        for(let j = 0; j < n; j++){
-            for(let i = 0; i < n; i++){
-                matrix_adj[i][j] = {x: j, y: i, z: 4};
-            }
-        }
-
-        */
-
-        // Convert links to matrix; count character occurrences.
-        data.links.forEach(function(link) {
-            if(matrix_adj[link.source][link.target] != null) {
                 matrix_adj[link.source][link.target].z += link.value;
                 matrix_adj[link.target][link.source].z += link.value;
                 nodes_adj[link.source].count++;

@@ -55,5 +55,9 @@ session_start();
 <script src="js/guiBuilder.js" type="module"></script>
 <!-- Visualisation Script -->
 <script src="js/vis.js" type="module"></script>
+<!-- Clustering Scripts -->
+<script src="js/netclustering.js" type="module"></script>
+<script src="js/algo.js" type="module"></script>
+
 </body>
 </html>
