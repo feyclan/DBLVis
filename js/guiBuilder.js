@@ -139,6 +139,10 @@ export function guiOptionInit(nextIndex, type) {
                                 <div class="card mb-2">
                                     <div class="card-header">
                                         Styling
+                                        <div class="custom-control custom-checkbox float-right">
+                                            <input type="checkbox" class="custom-control-input" id="styleCheck-${nextIndex}">
+                                            <label class="custom-control-label" for="styleCheck-${nextIndex}"></label>
+                                        </div>
                                     </div>
                                     <div class="card-body">
                                         <h6 class="card-title text-left">Nodes</h6>
@@ -159,7 +163,7 @@ export function guiOptionInit(nextIndex, type) {
                                         </div>
                                         <div class="form-group">
                                             <div class="input-group-text mb-2">Opacity :&nbsp;<div id="style_linkOpacity-label-${nextIndex}">0.5</div></div>
-                                            <input type="range" class="custom-range" id="style_linkOpacity-${nextIndex}" min="0" max="1" value=".5" step="0.01">
+                                            <input type="range" class="custom-range" id="style_linkOpacity-${nextIndex}" min="0" max="1" value=".5" step="0.01" disabled>
                                         </div>
                                     </div>
                                 </div>

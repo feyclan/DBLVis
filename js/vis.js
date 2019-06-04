@@ -7,6 +7,7 @@ var svgWidth = 1000,
     svgHeight = 1000,
     // Graph types that are not yet selected are 1, otherwise 0. [None, Node Link force, adjacency matrix]
     typeAvailable = [0,1,1],
+    styling = false,
     nodeColor = '#007bff',
     linkColor = '#D0D0D0',
     linkOpacity = 0.5;
@@ -184,6 +185,17 @@ function drawNodeLinkGraph(index) {
             }
             updateAll();
         };
+        document.getElementById('styleCheck-' + index).onchange = function () {
+            $('#style_linkOpacity-'+ index).prop("disabled", (_, val) => !val);
+            // Assign standard variables when checkbox is not checked.
+            if($('#styleCheck-'+ index +':checked').val()){
+                styling = true;
+
+            } else {
+                styling = false;
+            }
+            updateAll();
+        };
         document.getElementById('link_Distance-' + index).onchange = function () {
             forceProperties.link.distance = document.getElementById('link_Distance-' + index).value;
             document.getElementById('Distance-label-' + index).textContent = forceProperties.link.distance;
@@ -219,7 +231,7 @@ function drawNodeLinkGraph(index) {
 
 
 
-//defining variables
+    //defining variables
     var svg = d3.select('#visSVG-' + index)
         .attr("width", svgWidth)
         .attr("height", svgHeight)
@@ -239,6 +251,20 @@ function drawNodeLinkGraph(index) {
         simulation.nodes(graph.nodes);
         startForce();
         simulation.on("tick", update);
+        /* [OPTIONAL] Reduce renders per tick, above line should be commented out when using this.
+        var ticksPerRender = 3;
+        requestAnimationFrame(function render() {
+            for (var i = 0; i < ticksPerRender; i++) {
+                simulation.tick();
+            }
+            update();
+
+            if (simulation.alpha() > 0) {
+                requestAnimationFrame(render);
+            }
+        })
+
+         */
     }
 
 
@@ -254,7 +280,7 @@ function drawNodeLinkGraph(index) {
         updateForces();
     }
 
-// apply new force properties
+    // apply new force properties
     function updateForces() {
         // get each force by name and update the properties
         simulation.force("center")
@@ -311,16 +337,23 @@ function drawNodeLinkGraph(index) {
     function updateDisplay() {
         node
             .attr("r", forceProperties.collide.radius)
-            .attr("stroke-width", 0.5)
-            .attr("fill", nodeColor);
+            if(styling === true){
+            node
+                .attr("stroke-width", 0.5)
+                .attr("fill", nodeColor);
+            }
 
-        link
-            .style("stroke-width", 1.5)
-            .style("stroke", linkColor)
-            .attr("opacity", linkOpacity);
+
+            if(styling === true){
+            link
+                .style("stroke-width", 1.5)
+                .style("stroke", linkColor)
+                .attr("opacity", linkOpacity);
+            }
+
     }
 
-// update the display positions after each simulation tick
+    // update the display positions after each simulation tick
     function update() {
         link
             .attr("x1", function(d) { return d.source.x; })//x-coordinate of startpoint
@@ -406,7 +439,7 @@ function drawAdjacencyMatrix(index) {
             }
         }
 
- */
+        */
 
         // Convert links to matrix; count character occurrences.
         data.links.forEach(function(link) {
