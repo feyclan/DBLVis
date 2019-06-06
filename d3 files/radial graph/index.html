@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Radial Network</title>
+</head>
+<body>
+	<script src="https://d3js.org/d3.v4.min.js"></script> <!-- using d3.js library-->
+
+<script>
+
+	var width =  1500,
+	height =  1500,
+	nodesRadius = 2,
+    linksColor = "Red" ,
+	nodesColor = "Blue",
+    lineWidth = 0.8,
+    lineTransparency = 0.3,
+    nodeTransparency = 1.0, //keep this at 1.0!
+    radiusOfRadial = 500,
+    transform = d3.zoomIdentity,
+    simulation = d3.forceSimulation();
+
+
+    var canvas = d3.select("body")
+    		.append("canvas")
+    		.attr('width', width)
+            .attr('height', height)
+            .node();
+
+    //input
+    d3.json('test1.json', function (error, graph) {
+     if (error) throw error;
+
+
+        
+    simulation.force("link", d3.forceLink()
+        				.strength(0)
+        				.id(function(d) { return d.id; }))
+        .force("charge", d3.forceCollide()
+        				.radius(10))
+        .force("r", d3.forceRadial(function(d) { return radiusOfRadial;}))
+
+
+    var ctx = canvas.getContext('2d');
+
+
+     //add zoomfunction to visualization
+     d3.select(canvas)
+        .call(d3.zoom()
+            .scaleExtent([1 / 1000, 10])
+            .on("zoom", zoom));
+
+
+    simulation.nodes(graph.nodes)
+        .on('tick', tick);
+            
+
+    simulation.force('link')
+        .links(graph.links);
+                  
+    //zoomfunction
+    function zoom() {
+        transform = d3.event.transform;
+             tick();}  
+
+    function tick() {
+        ctx.save();
+                             
+
+        ctx.clearRect(0, 0, width, height);
+        ctx.translate(transform.x, transform.y);
+        ctx.scale(transform.k, transform.k);
+
+
+        ctx.beginPath();
+
+        graph.links.forEach(function (d) {
+
+            //width of edge
+            ctx.lineWidth = lineWidth;
+            //color of edge
+            ctx.strokeStyle = linksColor;
+            //tranparency of whole graph!!
+            ctx.globalAlpha = lineTransparency;
+
+            ctx.moveTo(d.source.x, d.source.y);
+            ctx.lineTo(d.target.x, d.target.y); });
+
+
+        ctx.stroke();
+
+
+        graph.nodes.forEach(function (d) {
+
+            //color of nodes
+            ctx.fillStyle = nodesColor;
+            //transparency of nodes
+            ctx.globalAlpha = nodeTransparency;
+            
+            ctx.beginPath();
+            ctx.moveTo(d.x, d.y);
+            ctx.arc(d.x, d.y, nodesRadius, 0, 2 * Math.PI);
+            ctx.fill();});
+
+            ctx.restore();}
+        
+        });
+
+
+</script>
+</body>
+</html>
