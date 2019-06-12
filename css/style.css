@@ -142,6 +142,10 @@ body {
     fill: #eee;
 }
 
+line {
+    stroke: #fff;
+}
+
 text.active {
     fill: red;
 }

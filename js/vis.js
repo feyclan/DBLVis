@@ -7,6 +7,7 @@ var svgWidth = 1000,
     svgHeight = 1000,
     // Graph types that are not yet selected are 1, otherwise 0. [None, Node Link force, adjacency matrix]
     typeAvailable = [0,1,1],
+    lines = false,
     styling = false,
     nodeColor = '#007bff',
     linkColor = '#D0D0D0',
@@ -69,7 +70,8 @@ function addGraph(){
         var total_element = $(".element").length;
 
         // last <div> with element class id
-        var lastid = $(".element:last").attr("id");
+        // noinspection JSJQueryEfficiency
+    var lastid = $(".element:last").attr("id");
         var split_id = lastid.split("-");
         var nextIndex = Number(split_id[1]) + 1;
 
@@ -133,7 +135,6 @@ function interactiveGraph(index, type){
 
 
 function drawNodeLinkGraph(index) {
-
     //Event listeners for changing settings
     try {
         document.getElementById('center_X-' + index).onchange = function () {
@@ -188,12 +189,7 @@ function drawNodeLinkGraph(index) {
         document.getElementById('styleCheck-' + index).onchange = function () {
             $('#style_linkOpacity-'+ index).prop("disabled", (_, val) => !val);
             // Assign standard variables when checkbox is not checked.
-            if($('#styleCheck-'+ index +':checked').val()){
-                styling = true;
-
-            } else {
-                styling = false;
-            }
+            styling = !!$('#styleCheck-' + index + ':checked').val();
             updateAll();
         };
         document.getElementById('link_Distance-' + index).onchange = function () {
@@ -336,7 +332,7 @@ function drawNodeLinkGraph(index) {
 
     function updateDisplay() {
         node
-            .attr("r", forceProperties.collide.radius)
+            .attr("r", forceProperties.collide.radius);
             if(styling === true){
             node
                 .attr("stroke-width", 0.5)
@@ -366,7 +362,7 @@ function drawNodeLinkGraph(index) {
             .attr("cy", function(d) { return d.y; });
     }
 
-    function startedTheDragging(d) {
+    function startedTheDragging() {
         if (!d3.event.active) simulation.alphaTarget(0.3).restart();
         d3.fx = d3.x;//save x-location before you change location of node
         d3.fy = d3.y;//save y-location before you change location of node
@@ -388,31 +384,41 @@ function drawNodeLinkGraph(index) {
 
 function drawAdjacencyMatrix(index) {
 
+    var margin = {top: 150, right: 0, bottom: 10, left: 150};
+
     var width_adj = svgWidth,
         height_adj = svgHeight;
     var x_adj = d3.scaleBand().range([0, width_adj]),
-        z_adj = d3.scaleLinear().domain([0, 4]).clamp(true),
-        c_adj = d3.scaleOrdinal(d3.schemeCategory10).domain(d3.range(10));
+        z_adj = d3.scaleLinear().domain([0, 4]).clamp(true);
+        //c_adj = d3.scaleOrdinal(d3.schemeCategory10).domain(d3.range(10));
     var svg_adj = d3.select('#visSVG-' + index)
         .attr("width", width_adj )
         .attr("height", height_adj)
-        .append("g");
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
     d3.json("uploads/parsed/data_parsed_matrix.json", function(data) {
+        document.getElementById('lineCheck-' + index).onchange = function () {
+            // Assign standard variables when checkbox is not checked.
+            if($('#lineCheck-'+ index +':checked').val()){
+                lines = true;
+                drawMatrix();
+            } else {
+                lines = false;
+                drawMatrix();
+            }
+        };
+
         var matrix_adj = [],
             nodes_adj = data.nodes,
-            links_adj  =data.links,
+            //links_adj  = data.links,
             n = nodes_adj.length;
         // Compute index per node.
         nodes_adj.forEach(function(node, i) {
             node.index = i;
             node.count = 0;
-            matrix_adj[i] = d3.range(n).map(function(j) { return {x: j, y: i, z: 0}; });
+            //matrix_adj[i] = d3.range(n).map(function(j) { return {x: j, y: i, z: 0}; });
         });
-
-        /* Redundant Code [DO NOT REMOVE]
-        console.log(data.nodes);
-        console.log(data.links);
 
         matrix_adj = new Array(n).fill(0).map(() => new Array(n).fill(0));
         //Map values x = i, y = j.
@@ -421,6 +427,11 @@ function drawAdjacencyMatrix(index) {
                 matrix_adj[i][j] = {x: j, y: i, z: 0};
             }
         }
+
+        /* Redundant Code [DO NOT REMOVE]
+        console.log(data.nodes);
+        console.log(data.links);
+
 
         links_adj.forEach(function (link) {
             if(matrix_adj[link.source][link.target] != null){
@@ -458,49 +469,8 @@ function drawAdjacencyMatrix(index) {
         };
         // The default sort order.
         x_adj.domain(orders.id);
-        svg_adj.append("rect")
-            .attr("class", "background-matrix")
-            .attr("width", width_adj)
-            .attr("height", height_adj);
-        var row = svg_adj.selectAll(".row")
-            .data(matrix_adj)
-            .enter().append("g")
-            .attr("class", "row")
-            .attr("transform", function(d, i) { return "translate(0," + x_adj(i) + ")"; })
-            .each(row);
-        //row.append("line")
-        //    .attr("x2", width_adj);
-        row.append("text")
-            .attr("x", -6)
-            .attr("y", x_adj.bandwidth() / 2)
-            .attr("dy", ".32em")
-            .attr("text-anchor", "end")
-            .text(function(d, i) { return nodes_adj[i].id; });
-        var column = svg_adj.selectAll(".column")
-            .data(matrix_adj)
-            .enter().append("g")
-            .attr("class", "column")
-            .attr("transform", function(d, i) { return "translate(" + x_adj(i) + ")rotate(-90)"; });
-        //column.append("line")
-        //    .attr("x1", -width_adj);
-        column.append("text")
-            .attr("x", 6)
-            .attr("y", x_adj.bandwidth() / 2)
-            .attr("dy", ".32em")
-            .attr("text-anchor", "start")
-            .text(function(d, i) { return nodes_adj[i].id; });
-        function row(row) {
-            var cell = d3.select(this).selectAll(".cell")
-                .data(row.filter(function(d) { return d.z; }))
-                .enter().append("rect")
-                .attr("class", "cell")
-                .attr("x", function(d) { return x_adj(d.x); })
-                .attr("width", x_adj.bandwidth())
-                .attr("height", x_adj.bandwidth())
-                .style("fill-opacity", function(d) { return z_adj(d.z); })
-                .on("mouseover", mouseover)
-                .on("mouseout", mouseout);
-        }
+        drawMatrix();
+
         function mouseover(p) {
             d3.selectAll(".row text").classed("active", function(d, i) { return i === p.y; });
             d3.selectAll(".column text").classed("active", function(d, i) { return i === p.x; });
@@ -508,7 +478,7 @@ function drawAdjacencyMatrix(index) {
         function mouseout() {
             d3.selectAll("text").classed("active", false);
         }
-        d3.select("#order").on("change", function() {
+        d3.select("#visTypeSelect").on("change", function() {
             clearTimeout(timeout);
             order(this.value);
         });
@@ -525,9 +495,67 @@ function drawAdjacencyMatrix(index) {
                 .delay(function(d, i) { return x_adj(i) * 4; })
                 .attr("transform", function(d, i) { return "translate(" + x_adj(i) + ")rotate(-90)"; });
         }
+        /*
         var timeout = setTimeout(function() {
             order("count");
-            d3.select("#order").property("selectedIndex", 2).node().focus();
+            d3.select("#visTypeSelect").property("selectedIndex", 1).node().focus();
         }, 5000);
+         */
+        function drawMatrix(){
+            svg_adj.selectAll("*").remove();
+            svg_adj.append("rect")
+                .attr("class", "background-matrix")
+                .attr("width", width_adj)
+                .attr("height", height_adj);
+            // noinspection JSDuplicatedDeclaration
+            var row = svg_adj.selectAll(".row")
+                .data(matrix_adj)
+                .enter().append("g")
+                .attr("class", "row")
+                .attr("transform", function(d, i) { return "translate(0," + x_adj(i) + ")"; })
+                .each(row);
+            row.append("text")
+                .style("font-size", calcFont(height_adj))
+                .attr("x", -6)
+                .attr("y", x_adj.bandwidth() / 2)
+                .attr("dy", ".32em")
+                .attr("text-anchor", "end")
+                .text(function(d, i) { return nodes_adj[i].id; });
+            var column = svg_adj.selectAll(".column")
+                .data(matrix_adj)
+                .enter().append("g")
+                .attr("class", "column")
+                .attr("transform", function(d, i) { return "translate(" + x_adj(i) + ")rotate(-90)"; });
+            column.append("text")
+                .style("font-size", calcFont(width_adj))
+                .attr("x", 6)
+                .attr("y", x_adj.bandwidth() / 2)
+                .attr("dy", ".32em")
+                .attr("text-anchor", "start")
+                .text(function(d, i) { return nodes_adj[i].id; });
+            // noinspection JSDuplicatedDeclaration
+            function row(row) {
+                var cell = d3.select(this).selectAll(".cell")
+                    .data(row.filter(function(d) { return d.z; }))
+                    .enter().append("rect")
+                    .attr("class", "cell")
+                    .attr("x", function(d) { return x_adj(d.x); })
+                    .attr("width", x_adj.bandwidth())
+                    .attr("height", x_adj.bandwidth())
+                    .style("fill-opacity", function(d) { return z_adj(d.z); })
+                    .on("mouseover", mouseover)
+                    .on("mouseout", mouseout);
+            }
+            if(lines){
+                row.append("line")
+                    .attr("x2", width_adj);
+                column.append("line")
+                    .attr("x1", -width_adj);
+            }
+        }
     });
+}
+
+function calcFont(size) {
+    return (size/1200).toString() + 'px';
 }

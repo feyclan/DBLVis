@@ -41,6 +41,7 @@ export function guiInit(nextIndex) {
 export function guiOptionInit(nextIndex, type) {
     switch(parseInt(type)){
         case 2 :
+            // noinspection JSJQueryEfficiency
             $("#card-" + nextIndex).append(`
             <div class="collapse" id="settings-${nextIndex}">
                 <div class="card-body">
@@ -213,6 +214,7 @@ export function guiOptionInit(nextIndex, type) {
             </div>`);
             break;
         case 3 :
+            // noinspection JSJQueryEfficiency
             $("#card-" + nextIndex).append(`
             <div class="collapse" id="settings-${nextIndex}">
                 <div class="card-body">
@@ -257,6 +259,19 @@ export function guiOptionInit(nextIndex, type) {
                                                 <option value="3">Value</option>
                                                 <option value="3">Group</option>
                                             </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm">
+                                <div class="card mb-2">
+                                    <div class="card-header">
+                                        Styling
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input" id="lineCheck-${nextIndex}">
+                                            <label class="custom-control-label" for="lineCheck-${nextIndex}">Lines</label>
                                         </div>
                                     </div>
                                 </div>
