@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<script src="https://d3js.org/d3.v4.js"></script>
+
+<div id="arc_diagram"></div>
+
+<script>
+
+var margin = {top: 10, right: 10, bottom: 10, left: 10},
+  width = 2500,
+  height = 1500,
+  nodeRadius = 10,
+  nodeColor = "Red",
+  nodeColorOnPress = "Black",
+  nodesColorOnPress = "Green",
+  edgeColor = "Blue",
+  edgeColorOnPress = "Yellow"
+  edgeWidth = 1,
+  edgeWidthOnPress = 5;
+
+
+var svg = d3.select("#arc_diagram")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+
+d3.json("test1.json", function( data) {
+
+  var allNodes = data.nodes.map(function(d){return d.id})
+
+  var x = d3.scalePoint().range([0, width]).domain(allNodes)
+
+
+  var nodes = svg
+    .selectAll("mynodes")
+    .data(data.nodes)
+    .enter()
+    .append("circle")
+      .attr("cx", function(d){ return(x(d.id))})
+      .attr("cy", height - 30)
+      .attr("r", nodeRadius)
+      .style("fill", nodeColor)
+
+
+
+  var labels = svg
+    .selectAll("mylabels")
+    .data(data.nodes)
+    .enter()
+    .append("text")
+      .attr("x", function(d){ return(x(d.id))})
+      .attr("y", height-10)
+      .text(function(d){ return(d.id)})
+      .style("text-anchor", "middle")
+
+
+  var idToNode = {};
+  data.nodes.forEach(function (n) {
+    idToNode[n.id] = n;
+  });
+
+
+  var links = svg
+    .selectAll('mylinks')
+    .data(data.links)
+    .enter()
+    .append('path')
+    .attr('d', function (d) {
+      start = x(idToNode[d.source].id)    
+      end = x(idToNode[d.target].id)      
+      return ['M', start, height-30,    
+        'A',                            
+        (start - end)/2, ',',    
+        (start - end)/2, 0, 0, ',',
+        start < end ? 1 : 0, end, ',', height-30] 
+        .join(' ');
+    })
+    .style("fill", "none") //edges are circles, this states that the circles do not have a filling.
+    .attr("stroke", edgeColor)
+
+    
+    nodes
+      .on('mouseover', function (d) {
+        nodes.style('fill', nodesColorOnPress)
+        d3.select(this).style('fill', nodeColorOnPress)
+        links
+          .style('stroke', function (link_d) { return link_d.source === d.id || link_d.target === d.id ? edgeColor : edgeColorOnPress;})
+          .style('stroke-width', function (link_d) { return link_d.source === d.id || link_d.target === d.id ? edgeWidthOnPress : edgeWidth;})
+      })
+      .on('mouseout', function (d) {
+        nodes.style('fill', nodeColor)
+        links
+          .style('stroke', edgeColor)
+          .style('stroke-width', '1')
+      })
+})
+
+
+</script>
