@@ -142,12 +142,21 @@ body {
     fill: #eee;
 }
 
+.scroll {
+    overflow: scroll;
+}
+
 line {
     stroke: #fff;
 }
 
 text.active {
     fill: red;
+}
+
+.cell:active{
+    background: red!important;
+    fill: red!important;
 }
 
 /* ---------------------------------------------------

@@ -1,12 +1,14 @@
 // Import functions from other .js files, needed to build the GUI.
-import { rebuildColorPicker } from './jscolor.js';
-import { guiInit, guiOptionInit } from './guiBuilder.js';
+import {rebuildColorPicker} from './jscolor.js';
+import {guiInit, guiOptionInit} from './guiBuilder.js';
 
 // Global standard value init.
-var svgWidth = 1000,
-    svgHeight = 1000,
-    // Graph types that are not yet selected are 1, otherwise 0. [None, Node Link force, adjacency matrix]
-    typeAvailable = [0,1,1],
+
+//Array [standard val, value for graph 1, value for graph 2, ...]
+var svgWidth = [],
+    svgHeight = [],
+    // Graph types that are not yet selected are 1, otherwise 0. [None, Node Link force, Node Link Radial, Adjacency Matrix]
+    typeAvailable = [0, 1, 1, 1],
     lines = false,
     styling = false,
     nodeColor = '#007bff',
@@ -50,66 +52,57 @@ var forceProperties = {
 };
 
 document.getElementById('addGraph').addEventListener('click', function () {
-    addGraph();
+    addMenuBar();
 });
 
-//Select appropriate graph for global settings
-function typeSelector(index, type) {
-    switch(parseInt(type)){
-        case 2 :
-            drawNodeLinkGraph(index);
-        break;
-        case 3 :
-            drawAdjacencyMatrix(index);
-        break;
+//Add new menu bar
+function addMenuBar(){
+    // Finding total number of elements added
+    var total_element = $(".element").length;
+
+    // last <div> with element class id
+    // noinspection JSJQueryEfficiency
+    var lastid = $(".element:last").attr("id");
+    var split_id = lastid.split("-");
+    var index = Number(split_id[1]) + 1;
+    //Set maximum number of elements
+    var max = 5;
+    // Check total number elements
+    if(total_element < max ){
+        // Adding new div container after last occurance of element class
+        $(".element:last").after("<div class='element' id='div-"+ index +"'></div>");
+        //Build GUI
+        guiInit(index);
+        //Disable graphs which are already selected.
+        for(let i = 0; i < typeAvailable.length; i++) {
+            if(typeAvailable[i] === 0) {
+                document.getElementById('visTypeSelect-' + index).options[i].disabled = true;
+            }
+        }
+        //Disable options as to not create unexpected behaviour of site.
+        document.getElementById('visTypeSelect-' + index).addEventListener('change', function () {
+            document.getElementById('visGraph-' + index).classList.remove("disabled");
+            document.getElementById('settingsBtn-' + index).classList.remove("disabled");
+            document.getElementById('visTypeSelect-' + index).disabled = true;
+            //Get value of activated graph. Set array accordingly.
+            var sel = document.getElementById('visTypeSelect-' + index),
+                type = sel.options[sel.selectedIndex].value;
+            typeAvailable[type-1] = 0;
+
+            //Set standard values for graphs
+            svgWidth[index] = 1000; svgHeight[index] = 1000;
+
+            guiOptionInit(index, type).then(function (){
+                interactiveGraph(index, type);
+                rebuildColorPicker();
+            });
+
+        });
+
     }
 }
 
-function addGraph(){
-        // Finding total number of elements added
-        var total_element = $(".element").length;
-
-        // last <div> with element class id
-        // noinspection JSJQueryEfficiency
-    var lastid = $(".element:last").attr("id");
-        var split_id = lastid.split("-");
-        var nextIndex = Number(split_id[1]) + 1;
-
-        var max = 5;
-        // Check total number elements
-        if(total_element < max ){
-            // Adding new div container after last occurance of element class
-            $(".element:last").after("<div class='element' id='div-"+ nextIndex +"'></div>");
-            //Build GUI
-            guiInit(nextIndex);
-            //Disable graphs which are already selected.
-            for(let i = 0; i < typeAvailable.length; i++) {
-                if(typeAvailable[i] === 0) {
-                    document.getElementById('visTypeSelect-' + nextIndex).options[i].disabled = true;
-                }
-            }
-
-            document.getElementById('visTypeSelect-' + nextIndex).addEventListener('change', function () {
-                document.getElementById('visGraph-' + nextIndex).classList.remove("disabled");
-                document.getElementById('settingsBtn-' + nextIndex).classList.remove("disabled");
-                document.getElementById('visTypeSelect-' + nextIndex).disabled = true;
-
-
-                var sel = document.getElementById('visTypeSelect-' + nextIndex),
-                type = sel.options[sel.selectedIndex].value;
-                typeAvailable[type-1] = 0;
-
-                guiOptionInit(nextIndex, type).then(function (){
-                    interactiveGraph(nextIndex, type);
-                    rebuildColorPicker();
-                });
-
-            });
-
-        }
-}
-
-
+//Function that adds appropriate event listeners for interactivity.
 function interactiveGraph(index, type){
     //Event Listener to draw graph
     document.getElementById('visGraph-' + index).addEventListener('click', function () {
@@ -118,23 +111,36 @@ function interactiveGraph(index, type){
         $('#visSVG-' + index).empty();
         typeSelector(index, type);
     });
-    //Event Listeners for changing svg dimensions
+    //Event Listeners for changing graph dimensions
     document.getElementById('width-form-' + index).addEventListener('input', function () {
-        svgWidth = document.getElementById('width-form-' + index).value;
+        svgWidth[index] = parseInt(document.getElementById('width-form-' + index).value);
         $('#visSVG-' + index).empty();
         typeSelector(index, type);
     });
-    //Event Listeners for changing svg dimensions
+    //Event Listeners for changing graph dimensions
     document.getElementById('height-form-' + index).addEventListener('input', function () {
-        svgHeight = document.getElementById('height-form-' + index).value;
+        svgHeight[index] = parseInt(document.getElementById('height-form-' + index).value);
         $('#visSVG-' + index).empty();
         typeSelector(index, type);
     });
 }
 
+//Select appropriate graph for global settings
+function typeSelector(index, type) {
+    switch(parseInt(type)){
+        case 2 :
+            drawNodeLinkForce(index);
+        break;
+        case 3 :
+            drawNodeLinkRadial(index);
+            break;
+        case 4 :
+            drawAdjacencyMatrix(index);
+        break;
+    }
+}
 
-
-function drawNodeLinkGraph(index) {
+function drawNodeLinkForce(index) {
     //Event listeners for changing settings
     try {
         document.getElementById('center_X-' + index).onchange = function () {
@@ -229,15 +235,15 @@ function drawNodeLinkGraph(index) {
 
     //defining variables
     var svg = d3.select('#visSVG-' + index)
-        .attr("width", svgWidth)
-        .attr("height", svgHeight)
+        .attr("width", svgWidth[index])
+        .attr("height", svgWidth[index])
         .call(d3.zoom().on("zoom", function () { //zoom function
             svg.attr("transform", d3.event.transform)
         }))
         .append("g");
 
-    var width = svgWidth,
-        height = svgHeight,
+    var width = svgWidth[index],
+        height = svgWidth[index],
         simulation = d3.forceSimulation(),
         graph,
         link,
@@ -311,8 +317,8 @@ function drawNodeLinkGraph(index) {
             .style("stroke", linkColor)
             .selectAll("line")
             .data(graph.links)
-            .enter().append("line");
-            //.style("opacity", 0.1);
+            .enter().append("line")
+            .attr("opacity", 0.5);
 
         node = svg.append("g")
             .attr("stroke", "#fff")
@@ -339,11 +345,11 @@ function drawNodeLinkGraph(index) {
                 .attr("fill", nodeColor);
             }
 
-
+        link //Stopped working inside if statement?
+            .style("stroke", linkColor);
             if(styling === true){
             link
                 .style("stroke-width", 1.5)
-                .style("stroke", linkColor)
                 .attr("opacity", linkOpacity);
             }
 
@@ -382,22 +388,108 @@ function drawNodeLinkGraph(index) {
     }
 }
 
+function drawNodeLinkRadial(index){
+    var nodesRadius = 2,
+        linksColor = "Red" ,
+        nodesColor = "Blue",
+        lineWidth = 0.8,
+        lineTransparency = 0.3,
+        nodeTransparency = 1.0, //keep this at 1.0!
+        radiusOfRadial = 500,
+        transform = d3.zoomIdentity,
+        simulation = d3.forceSimulation();
+
+    var canvas = d3.select('#visCanvas-' + index)
+        .append("canvas")
+        .attr('width', svgWidth[index])
+        .attr('height', svgWidth[index])
+        .node();
+    //input
+    d3.json('uploads/parsed/data_parsed_node-link.json', function (error, graph) {
+        if (error) throw error;
+
+        simulation.force("link", d3.forceLink()
+            .strength(0)
+            .id(function(d) { return d.id; }))
+            .force("charge", d3.forceCollide()
+                .radius(10))
+            .force("r", d3.forceRadial(function() { return radiusOfRadial;}));
+        var ctx = canvas.getContext('2d');
+        //add zoomfunction to visualization
+        d3.select(canvas)
+            .call(d3.zoom()
+                .scaleExtent([1 / 1000, 10])
+                .on("zoom", zoom));
+        simulation.nodes(graph.nodes)
+            .on('tick', tick);
+
+        simulation.force('link')
+            .links(graph.links);
+
+        //zoomfunction
+        function zoom() {
+            transform = d3.event.transform;
+            tick();}
+        function tick() {
+            ctx.save();
+
+            ctx.clearRect(0, 0, svgWidth[index], svgHeight[index]);
+            ctx.translate(transform.x, transform.y);
+            ctx.scale(transform.k, transform.k);
+            ctx.beginPath();
+            graph.links.forEach(function (d) {
+                //width of edge
+                ctx.lineWidth = lineWidth;
+                //color of edge
+                ctx.strokeStyle = linksColor;
+                //tranparency of whole graph!!
+                ctx.globalAlpha = lineTransparency;
+                ctx.moveTo(d.source.x, d.source.y);
+                ctx.lineTo(d.target.x, d.target.y); });
+            ctx.stroke();
+            graph.nodes.forEach(function (d) {
+                //color of nodes
+                ctx.fillStyle = nodesColor;
+                //transparency of nodes
+                ctx.globalAlpha = nodeTransparency;
+
+                ctx.beginPath();
+                ctx.moveTo(d.x, d.y);
+                ctx.arc(d.x, d.y, nodesRadius, 0, 2 * Math.PI);
+                ctx.fill();});
+            ctx.restore();}
+
+    });
+}
+
 function drawAdjacencyMatrix(index) {
+    var margin = {top: 100, right: 0, bottom: 10, left: 100};
+    var width_adj = svgWidth[index],
+        height_adj = svgHeight[index];
 
-    var margin = {top: 150, right: 0, bottom: 10, left: 150};
-
-    var width_adj = svgWidth,
-        height_adj = svgHeight;
     var x_adj = d3.scaleBand().range([0, width_adj]),
         z_adj = d3.scaleLinear().domain([0, 4]).clamp(true);
         //c_adj = d3.scaleOrdinal(d3.schemeCategory10).domain(d3.range(10));
     var svg_adj = d3.select('#visSVG-' + index)
-        .attr("width", width_adj )
-        .attr("height", height_adj)
+        .attr("width", (width_adj + margin.left + margin.right))
+        .attr("height", (height_adj + margin.top + margin.bottom))
+        //.style("margin-right", -margin.left + "px")
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-    d3.json("uploads/parsed/data_parsed_matrix.json", function(data) {
+        d3.json("uploads/parsed/data_parsed_matrix.json", function(data) {
+            var matrix_adj = [],
+                nodes_adj = data.nodes,
+                n = nodes_adj.length;
+
+        // Compute index per node.
+        nodes_adj.forEach(function(node, i) {
+            node.index = i;
+            node.count = 0;
+            //matrix_adj[i] = d3.range(n).map(function(j) { return {x: j, y: i, z: 0}; });
+        });
+
+        //Add listeners
         document.getElementById('lineCheck-' + index).onchange = function () {
             // Assign standard variables when checkbox is not checked.
             if($('#lineCheck-'+ index +':checked').val()){
@@ -409,17 +501,7 @@ function drawAdjacencyMatrix(index) {
             }
         };
 
-        var matrix_adj = [],
-            nodes_adj = data.nodes,
-            //links_adj  = data.links,
-            n = nodes_adj.length;
-        // Compute index per node.
-        nodes_adj.forEach(function(node, i) {
-            node.index = i;
-            node.count = 0;
-            //matrix_adj[i] = d3.range(n).map(function(j) { return {x: j, y: i, z: 0}; });
-        });
-
+        //Initialize matrix
         matrix_adj = new Array(n).fill(0).map(() => new Array(n).fill(0));
         //Map values x = i, y = j.
         for(let j = 0; j < n; j++){
@@ -427,6 +509,16 @@ function drawAdjacencyMatrix(index) {
                 matrix_adj[i][j] = {x: j, y: i, z: 0};
             }
         }
+
+        // Convert links to matrix; count character occurrences.
+        data.links.forEach(function(link) {
+            if(matrix_adj[link.source][link.target] != null) {
+                matrix_adj[link.source][link.target].z += link.value;
+                matrix_adj[link.target][link.source].z += link.value;
+                nodes_adj[link.source].count++;
+                nodes_adj[link.target].count++;
+            }
+        });
 
         /* Redundant Code [DO NOT REMOVE]
         console.log(data.nodes);
@@ -452,21 +544,12 @@ function drawAdjacencyMatrix(index) {
 
         */
 
-        // Convert links to matrix; count character occurrences.
-        data.links.forEach(function(link) {
-            if(matrix_adj[link.source][link.target] != null) {
-                matrix_adj[link.source][link.target].z += link.value;
-                matrix_adj[link.target][link.source].z += link.value;
-                nodes_adj[link.source].count++;
-                nodes_adj[link.target].count++;
-            }
-        });
-
         // Precompute the orders.
         var orders = {
             id: d3.range(n).sort(function(a, b) { return d3.ascending(nodes_adj[a].id, nodes_adj[b].id); }),
             count: d3.range(n).sort(function(a, b) { return nodes_adj[b].count - nodes_adj[a].count; })
         };
+
         // The default sort order.
         x_adj.domain(orders.id);
         drawMatrix();
@@ -474,14 +557,19 @@ function drawAdjacencyMatrix(index) {
         function mouseover(p) {
             d3.selectAll(".row text").classed("active", function(d, i) { return i === p.y; });
             d3.selectAll(".column text").classed("active", function(d, i) { return i === p.x; });
+            d3.selectAll(".cell").classed("active", function(d, i) { return i === p.x; });
         }
+
         function mouseout() {
             d3.selectAll("text").classed("active", false);
+            d3.selectAll(".cell").classed("active", false);
         }
+
         d3.select("#visTypeSelect").on("change", function() {
             clearTimeout(timeout);
             order(this.value);
         });
+
         function order(value) {
             x_adj.domain(orders[value]);
             var t = svg_adj.transition().duration(2500);
@@ -553,9 +641,9 @@ function drawAdjacencyMatrix(index) {
                     .attr("x1", -width_adj);
             }
         }
-    });
-}
-
-function calcFont(size) {
-    return (size/1200).toString() + 'px';
+        });
+    //Calculate font size of node titles dependent of Matrix size.
+    function calcFont(size) {
+        return (size/1200).toString() + 'px';
+    }
 }
