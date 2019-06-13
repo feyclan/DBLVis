@@ -2,6 +2,8 @@ import {jLouvain} from "./jLouvain.js";
 
 export function clusterNodeGraph(data) {
     return new Promise(function (resolve) {
+        //Array containing partitions
+        var partition = {"Jim_Thomas":1,"Lawrence_A._Rowe":1};
         //Array containing all node names
         var nodeArr = [];
         //Array containing all clusters with their children (index = cluster, array on index = children)
@@ -21,7 +23,7 @@ export function clusterNodeGraph(data) {
 
         console.log(nodeArr);
         console.log(data.links);
-        var community = jLouvain().nodes(nodeArr).edges(data.links);
+        var community = jLouvain().nodes(nodeArr).edges(data.links).partition_init(partition);
         community = Object.entries(community());
 
         community.forEach(function (e) { //e = [id, cluster]
@@ -51,14 +53,15 @@ export function clusterNodeGraph(data) {
                 newGraph.links.push({source:src, target:tar, value:e.value});
             }
         });
-        /* [USED FOR DEBUGGING]
-        console.log(keyArr);
+        //[USED FOR DEBUGGING]
+        /*
+        console.log(community);
+        console.log(nodeArr);
         console.log(clusterArr);
-        console.log(linkArr);
-        console.log(tempLinkArr);
         console.log(newGraph);
         console.log(community);
-        */
+         */
+
         resolve(newGraph);
     });
 }

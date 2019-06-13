@@ -183,19 +183,20 @@ session_start();
     <!-- Script to check if info message should be shown and to set file name in text box -->
     <!--suppress UnreachableCodeJS -->
     <script>
+        document.getElementById('uploadBtn').onchange = function(){
+            //Set Label
+            setLabelName();
+        };
+
+        function setLabelName() {
+            document.getElementById('fileLabel').textContent = document.getElementById('uploadBtn').files[0].name;
+        }
+    </script>
+    <script>
             if("<?php echo $_SESSION['uploadMsg']; ?>" === "File uploaded"){
                 document.getElementById('uploadMsgSuccess').style.display = "block";
             } else if(<?php if($_SESSION['uploadISSET']){echo $_SESSION['uploadISSET'];}else{echo "0";} ?>) {
                 document.getElementById('uploadMsgFail').style.display = "block";
-            }
-
-            document.getElementById('uploadBtn').onchange = function(){
-                //Set Label
-                setLabelName();
-            };
-
-            function setLabelName() {
-                document.getElementById('fileLabel').textContent = document.getElementById('uploadBtn').files[0].name;
             }
     </script>
 </body>

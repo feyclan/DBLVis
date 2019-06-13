@@ -136,6 +136,10 @@ export function guiOptionInit(index, type) {
                                             <input type="checkbox" class="custom-control-input" id="collideCheck-${index}" checked>
                                             <label class="custom-control-label" for="collideCheck-${index}">Collide</label>
                                         </div>
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input" id="clusteringCheck-${index}" checked>
+                                            <label class="custom-control-label" for="clusteringCheck-${index}">Clustering&nbsp;&nbsp;<i class="fas fa-exclamation-triangle"></i></label>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="card mb-2">

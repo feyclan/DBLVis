@@ -7,16 +7,23 @@
 let tempLinks, tempNodes, tempNodesNew;
 let d3Graph, d3GraphNodes, d3GraphLinks, d3Matrix, d3MatrixNodes, d3MatrixLinks;
 //Default parser setting variables
-let setWorker, setHeader, setDynamicTyping, setMode;
+let setWorker, setHeader, setDynamicTyping, setMode, loadFromServer, localFile;
 setWorker = false;
 setHeader = true;
 setDynamicTyping = true;
 setMode = false;
+loadFromServer = true;
 
 //Event handler for uploading file
 document.getElementById('parserBtn').addEventListener('click', function () {
     init();
 });
+
+document.getElementById('uploadBtn').onchange = function(){
+    //Set load attribute
+    loadFromServer = false;
+    localFile = document.getElementById('uploadBtn').files[0];
+};
 
 function init(){
     //Make settings unchangeable during process
@@ -31,7 +38,15 @@ function init(){
     //Show progress bar
     document.getElementById('progressBar').style.display = "block";
     //Select file and parse
-    loadDoc();
+    chooseFileLoad();
+}
+
+function chooseFileLoad(){
+    if(loadFromServer){
+        loadDoc();
+    }else{
+        parserCSV(localFile);
+    }
 }
 
 //Load data.csv into csvFile

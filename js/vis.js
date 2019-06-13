@@ -1,7 +1,6 @@
 // Import functions from other .js files, needed to build the GUI.
 import {rebuildColorPicker} from './jscolor.js';
 import {guiInit, guiOptionInit} from './guiBuilder.js';
-import {jLouvain} from "./jLouvain.js";
 import {clusterNodeGraph} from "./cluster.js";
 
 // Global standard value init.
@@ -15,7 +14,8 @@ var svgWidth = [],
     styling = false,
     nodeColor = '#007bff',
     linkColor = '#D0D0D0',
-    linkOpacity = 0.5;
+    linkOpacity = 0.5,
+    clusterActive = true;
 
 var forceProperties = {
     //are not resettable in window
@@ -209,6 +209,10 @@ function drawNodeLinkForce(index) {
             forceProperties.collide.enabled = !!$('#linkCheck'+ index +':checked').val();
             updateAll();
         };
+        document.getElementById('clusteringCheck-' + index).onchange = function () {
+            clusterActive = !clusterActive;
+            drawNodeLinkForce();
+        };
         document.getElementById('style_nodeColor-' + index).onchange = function () {
             nodeColor ='#' + document.getElementById('style_nodeColor-' + index).value;
             updateAll();
@@ -228,11 +232,17 @@ function drawNodeLinkForce(index) {
     //loading .json - file data_parsed_node-link
     d3.json("uploads/parsed/data_parsed_node-link.json", function(error, _graph) {
         if (error) throw error;
-        clusterNodeGraph(_graph).then(function (data) {
-            graph = data;
+        if(clusterActive){
+            clusterNodeGraph(_graph).then(function (data) {
+                graph = data;
+                startDisplay();
+                startSimulation();
+            });
+        }else{
+            graph = _graph;
             startDisplay();
             startSimulation();
-        });
+        }
     });
 
 
@@ -351,7 +361,7 @@ function drawNodeLinkForce(index) {
 
         link //Stopped working inside if statement?
             .style("stroke", linkColor)
-            .style("stroke-width", function(d) { return d.value * 2; });
+            .style("stroke-width", function(d) { let val = d.value * 2; if(val > 100){return 100}else{return val}});
             if(styling === true){
             link
                 .attr("opacity", linkOpacity);
@@ -492,21 +502,23 @@ function drawAdjacencyMatrix(index) {
 
     //Redundant for the moment -does nothing-
     function clusterLouvain(data) {
-        var nodeArr = [];
+//        var nodeArr = [];
 /*
         data.nodes.forEach(function (e) {
            nodeArr.push(e.indexOf());
         });
 
- */
+
         for(let i = 0; i < data.nodes.length; i++){
             nodeArr.push(i);
         }
 
-        console.log(nodeArr);
-        console.log(data.links);
-        var community = jLouvain().nodes(nodeArr).edges(data.links);
-        console.log(community());
+ */
+
+        //console.log(nodeArr);
+        //console.log(data.links);
+        //var community = jLouvain().nodes(nodeArr).edges(data.links);
+        //console.log(community());
         return data;
     }
 
