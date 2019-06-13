@@ -21,8 +21,8 @@ export function clusterNodeGraph(data) {
            nodeArr.push(e.id);
         });
 
-        console.log(nodeArr);
-        console.log(data.links);
+        //console.log(nodeArr);
+        //console.log(data.links);
         var community = jLouvain().nodes(nodeArr).edges(data.links).partition_init(partition);
         community = Object.entries(community());
 
