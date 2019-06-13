@@ -1,6 +1,8 @@
 // Import functions from other .js files, needed to build the GUI.
 import {rebuildColorPicker} from './jscolor.js';
 import {guiInit, guiOptionInit} from './guiBuilder.js';
+import {jLouvain} from "./jLouvain.js";
+import {clusterNodeGraph} from "./cluster.js";
 
 // Global standard value init.
 
@@ -226,9 +228,11 @@ function drawNodeLinkForce(index) {
     //loading .json - file data_parsed_node-link
     d3.json("uploads/parsed/data_parsed_node-link.json", function(error, _graph) {
         if (error) throw error;
-        graph = _graph;
-        startDisplay();
-        startSimulation();
+        clusterNodeGraph(_graph).then(function (data) {
+            graph = data;
+            startDisplay();
+            startSimulation();
+        });
     });
 
 
@@ -292,7 +296,7 @@ function drawNodeLinkForce(index) {
             .strength(forceProperties.charge.strength * forceProperties.charge.enabled)
             .distanceMax(forceProperties.charge.distanceMax);
         simulation.force("collide")
-            .radius(forceProperties.collide.radius);
+            .radius(function(d) { if(d.count){return d.count * 4 + 10;}else{return forceProperties.collide.radius}});
         simulation.force("X")
             .strength(forceProperties.X.strength * forceProperties.X.enabled)
             .x(width * forceProperties.X.x);
@@ -338,7 +342,7 @@ function drawNodeLinkForce(index) {
 
     function updateDisplay() {
         node
-            .attr("r", forceProperties.collide.radius);
+            .attr("r", function(d) { if(d.count){return d.count * 4;}else{return forceProperties.collide.radius}});
             if(styling === true){
             node
                 .attr("stroke-width", 0.5)
@@ -346,10 +350,10 @@ function drawNodeLinkForce(index) {
             }
 
         link //Stopped working inside if statement?
-            .style("stroke", linkColor);
+            .style("stroke", linkColor)
+            .style("stroke-width", function(d) { return d.value * 2; });
             if(styling === true){
             link
-                .style("stroke-width", 1.5)
                 .attr("opacity", linkOpacity);
             }
 
@@ -465,8 +469,9 @@ function drawNodeLinkRadial(index){
 function drawAdjacencyMatrix(index) {
     var margin = {top: 100, right: 0, bottom: 10, left: 100};
     var width_adj = svgWidth[index],
-        height_adj = svgHeight[index];
-
+        height_adj = svgHeight[index],
+        matrix_adj = [],
+        nodes_adj, links_adj, n;
     var x_adj = d3.scaleBand().range([0, width_adj]),
         z_adj = d3.scaleLinear().domain([0, 4]).clamp(true);
         //c_adj = d3.scaleOrdinal(d3.schemeCategory10).domain(d3.range(10));
@@ -477,10 +482,44 @@ function drawAdjacencyMatrix(index) {
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-        d3.json("uploads/parsed/data_parsed_matrix.json", function(data) {
-            var matrix_adj = [],
-                nodes_adj = data.nodes,
-                n = nodes_adj.length;
+    function loadJSON() {
+        return new Promise(function (resolve) {
+            d3.json("uploads/parsed/data_parsed_matrix.json", function(data) {
+                resolve(data);
+            });
+        });
+    }
+
+    //Redundant for the moment -does nothing-
+    function clusterLouvain(data) {
+        var nodeArr = [];
+/*
+        data.nodes.forEach(function (e) {
+           nodeArr.push(e.indexOf());
+        });
+
+ */
+        for(let i = 0; i < data.nodes.length; i++){
+            nodeArr.push(i);
+        }
+
+        console.log(nodeArr);
+        console.log(data.links);
+        var community = jLouvain().nodes(nodeArr).edges(data.links);
+        console.log(community());
+        return data;
+    }
+
+    loadJSON().then(function (data) {
+        return new Promise(function (resolve) {
+           resolve(clusterLouvain(data));
+        });
+    }).then(function(data) {
+        matrix_adj = [];
+        nodes_adj = data.nodes;
+        links_adj = data.links;
+        n = nodes_adj.length;
+
 
         // Compute index per node.
         nodes_adj.forEach(function(node, i) {
@@ -511,7 +550,7 @@ function drawAdjacencyMatrix(index) {
         }
 
         // Convert links to matrix; count character occurrences.
-        data.links.forEach(function(link) {
+        links_adj.forEach(function(link) {
             if(matrix_adj[link.source][link.target] != null) {
                 matrix_adj[link.source][link.target].z += link.value;
                 matrix_adj[link.target][link.source].z += link.value;
@@ -641,9 +680,9 @@ function drawAdjacencyMatrix(index) {
                     .attr("x1", -width_adj);
             }
         }
-        });
-    //Calculate font size of node titles dependent of Matrix size.
-    function calcFont(size) {
-        return (size/1200).toString() + 'px';
-    }
+        //Calculate font size of node titles dependent of Matrix size.
+        function calcFont(size) {
+            return (size/1200).toString() + 'px';
+        }
+    });
 }

@@ -199,8 +199,8 @@ function parserAdjacencyMatrix(){
 
             if(!isZero&&isEmptyTarget&&!isDuplicate&&!isEqual) {
                 d3MatrixLinks.push({
-                    "source": tempNodesNew.indexOf(tempLinkArr[0][1]),
-                    "target": tempNodesNew.indexOf(tempLinkArr[j][0]),
+                    "source": tempNodesNew.indexOf(tempLinkArr[0][1]) - 1,
+                    "target": tempNodesNew.indexOf(tempLinkArr[j][0]) - 1,
                     "value": tempLinkArr[j][1]
                 });
             }
