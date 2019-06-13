@@ -352,7 +352,7 @@ function drawNodeLinkForce(index) {
 
     function updateDisplay() {
         node
-            .attr("r", function(d) { if(d.count){return d.count * 4;}else{return forceProperties.collide.radius}});
+            .attr("r", function(d) { if(d.count){if(d.count*4>200){return 200}else{return d.count * 4;}}else{return forceProperties.collide.radius}});
             if(styling === true){
             node
                 .attr("stroke-width", 0.5)

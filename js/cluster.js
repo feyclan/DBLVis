@@ -3,7 +3,7 @@ import {jLouvain} from "./jLouvain.js";
 export function clusterNodeGraph(data) {
     return new Promise(function (resolve) {
         //Array containing partitions
-        var partition = {"Jim_Thomas":1,"Lawrence_A._Rowe":1};
+        //var partition = {"Jim_Thomas":1,"Lawrence_A._Rowe":1};
         //Array containing all node names
         var nodeArr = [];
         //Array containing all clusters with their children (index = cluster, array on index = children)
@@ -23,7 +23,7 @@ export function clusterNodeGraph(data) {
 
         //console.log(nodeArr);
         //console.log(data.links);
-        var community = jLouvain().nodes(nodeArr).edges(data.links).partition_init(partition);
+        var community = jLouvain().nodes(nodeArr).edges(data.links);//.partition_init(partition);
         community = Object.entries(community());
 
         community.forEach(function (e) { //e = [id, cluster]
@@ -54,13 +54,12 @@ export function clusterNodeGraph(data) {
             }
         });
         //[USED FOR DEBUGGING]
-        /*
+        console.log(data);
+        console.log(keyArr);
         console.log(community);
         console.log(nodeArr);
         console.log(clusterArr);
         console.log(newGraph);
-        console.log(community);
-         */
 
         resolve(newGraph);
     });
