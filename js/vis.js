@@ -228,11 +228,14 @@ function drawNodeLinkForce(index) {
         };
         document.getElementById('clusteringCheck-' + index).onchange = function () {
             clusterActive = !clusterActive;
-            drawNodeLinkForce();
+            reloadJSON();
+            startDisplay();
+            startSimulation();
+            //updateAll();
         };
         document.getElementById('style_nodeColor-' + index).onchange = function () {
             nodeColor ='#' + document.getElementById('style_nodeColor-' + index).value;
-            updateAll();
+
         };
         document.getElementById('style_linkColor-' + index).onchange = function () {
             linkColor ='#' + document.getElementById('style_linkColor-' + index).value;
@@ -262,6 +265,24 @@ function drawNodeLinkForce(index) {
             startSimulation();
         }
     });
+
+    function reloadJSON(){
+        d3.json("uploads/parsed/data_parsed_node-link.json", function(error, _graph) {
+            if (error) throw error;
+            graphOrigin = _graph;
+            if(clusterActive){
+                clusterNodeGraph(_graph, false).then(function (data) {
+                    graph = data;
+                    startDisplay();
+                    startSimulation();
+                });
+            }else{
+                graph = _graph;
+                startDisplay();
+                startSimulation();
+            }
+        });
+    }
 
 
     function startSimulation() {
@@ -354,10 +375,10 @@ function drawNodeLinkForce(index) {
                     // React on right-clicking
                     prepareCluster(d, graphOrigin, graph).then(function (result) {
                         graph = result;
+                        /* [DEBUG]
                         console.log(d);
                         console.log(graph);
-                        //updateForces();
-                        //update();
+                         */
                         startDisplay();
                         startSimulation();
                     });
