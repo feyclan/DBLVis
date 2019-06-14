@@ -1,7 +1,7 @@
 // Import functions from other .js files, needed to build the GUI.
 import {rebuildColorPicker} from './jscolor.js';
 import {guiInit, guiOptionInit} from './guiBuilder.js';
-import {clusterNodeGraph} from "./cluster.js";
+import {clusterNodeGraph, prepareCluster} from "./cluster.js";
 
 // Global standard value init.
 
@@ -143,6 +143,23 @@ function typeSelector(index, type) {
 }
 
 function drawNodeLinkForce(index) {
+    //defining variables
+    var svg = d3.select('#visSVG-' + index)
+        .attr("width", svgWidth[index])
+        .attr("height", svgWidth[index])
+        .call(d3.zoom().on("zoom", function () { //zoom function
+            svg.attr("transform", d3.event.transform)
+        }))
+        .append("g");
+
+    var width = svgWidth[index],
+        height = svgWidth[index],
+        simulation = d3.forceSimulation(),
+        graph,
+        graphOrigin,
+        link,
+        node;
+
     //Event listeners for changing settings
     try {
         document.getElementById('center_X-' + index).onchange = function () {
@@ -232,8 +249,9 @@ function drawNodeLinkForce(index) {
     //loading .json - file data_parsed_node-link
     d3.json("uploads/parsed/data_parsed_node-link.json", function(error, _graph) {
         if (error) throw error;
+        graphOrigin = _graph;
         if(clusterActive){
-            clusterNodeGraph(_graph).then(function (data) {
+            clusterNodeGraph(_graph, false).then(function (data) {
                 graph = data;
                 startDisplay();
                 startSimulation();
@@ -246,24 +264,8 @@ function drawNodeLinkForce(index) {
     });
 
 
-
-    //defining variables
-    var svg = d3.select('#visSVG-' + index)
-        .attr("width", svgWidth[index])
-        .attr("height", svgWidth[index])
-        .call(d3.zoom().on("zoom", function () { //zoom function
-            svg.attr("transform", d3.event.transform)
-        }))
-        .append("g");
-
-    var width = svgWidth[index],
-        height = svgWidth[index],
-        simulation = d3.forceSimulation(),
-        graph,
-        link,
-        node;
-
     function startSimulation() {
+
         simulation.nodes(graph.nodes);
         startForce();
         simulation.on("tick", update);
@@ -344,8 +346,22 @@ function drawNodeLinkForce(index) {
             .enter().append("circle")
             .call(d3.drag()
                 .on("start", startedTheDragging)
-                .on("drag", dragging));
-
+                .on("drag", dragging))
+                //[REDUNDANT].on("dblclick",function(d){ alert("node was double clicked"); })
+                .on("contextmenu", function (d, i) { // d = object (node), i = index
+                    // Remove standard browser menu
+                    d3.event.preventDefault();
+                    // React on right-clicking
+                    prepareCluster(d, graphOrigin, graph).then(function (result) {
+                        graph = result;
+                        console.log(d);
+                        console.log(graph);
+                        //updateForces();
+                        //update();
+                        startDisplay();
+                        startSimulation();
+                    });
+                });
 
         updateDisplay();
     }
