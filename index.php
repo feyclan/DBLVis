@@ -28,7 +28,7 @@ session_start();
             </div>
             <ul class="list-unstyled">
                 <li><a href="index.php"><i class="fas fa-home"></i><div>Home</div></a></li>
-                <li><a href="vis.php"><i class="fas fa-chart-bar"></i><div>Visualisations</div></a></li>
+                <li><a href="vis.html"><i class="fas fa-chart-bar"></i><div>Visualisations</div></a></li>
             </ul>
         </nav>
 
@@ -181,20 +181,22 @@ session_start();
     <script src="js/parser.js"></script>
 
     <!-- Script to check if info message should be shown and to set file name in text box -->
+    <!--suppress UnreachableCodeJS -->
+    <script>
+        document.getElementById('uploadBtn').onchange = function(){
+            //Set Label
+            setLabelName();
+        };
+
+        function setLabelName() {
+            document.getElementById('fileLabel').textContent = document.getElementById('uploadBtn').files[0].name;
+        }
+    </script>
     <script>
             if("<?php echo $_SESSION['uploadMsg']; ?>" === "File uploaded"){
                 document.getElementById('uploadMsgSuccess').style.display = "block";
             } else if(<?php if($_SESSION['uploadISSET']){echo $_SESSION['uploadISSET'];}else{echo "0";} ?>) {
                 document.getElementById('uploadMsgFail').style.display = "block";
-            }
-
-            document.getElementById('uploadBtn').onchange = function(){
-                //Set Label
-                setLabelName();
-            };
-
-            function setLabelName() {
-                document.getElementById('fileLabel').textContent = document.getElementById('uploadBtn').files[0].name;
             }
     </script>
 </body>

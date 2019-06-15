@@ -1,16 +1,21 @@
 // Import functions from other .js files, needed to build the GUI.
-import { rebuildColorPicker } from './jscolor.js';
-import { guiInit, guiOptionInit } from './guiBuilder.js';
+import {rebuildColorPicker} from './jscolor.js';
+import {guiInit, guiOptionInit} from './guiBuilder.js';
+import {clusterNodeGraph, prepareCluster} from "./cluster.js";
 
 // Global standard value init.
-var svgWidth = 1000,
-    svgHeight = 1000,
-    // Graph types that are not yet selected are 1, otherwise 0. [None, Node Link force, adjacency matrix]
-    typeAvailable = [0,1,1],
+
+//Array [standard val, value for graph 1, value for graph 2, ...]
+var svgWidth = [],
+    svgHeight = [],
+    // Graph types that are not yet selected are 1, otherwise 0. [None, Node Link force, Node Link Radial, Adjacency Matrix]
+    typeAvailable = [0, 1, 1, 1],
+    lines = false,
     styling = false,
     nodeColor = '#007bff',
     linkColor = '#D0D0D0',
-    linkOpacity = 0.5;
+    linkOpacity = 0.5,
+    clusterActive = true;
 
 var forceProperties = {
     //are not resettable in window
@@ -49,65 +54,57 @@ var forceProperties = {
 };
 
 document.getElementById('addGraph').addEventListener('click', function () {
-    addGraph();
+    addMenuBar();
 });
 
-//Select appropriate graph for global settings
-function typeSelector(index, type) {
-    switch(parseInt(type)){
-        case 2 :
-            drawNodeLinkGraph(index);
-        break;
-        case 3 :
-            drawAdjacencyMatrix(index);
-        break;
+//Add new menu bar
+function addMenuBar(){
+    // Finding total number of elements added
+    var total_element = $(".element").length;
+
+    // last <div> with element class id
+    // noinspection JSJQueryEfficiency
+    var lastid = $(".element:last").attr("id");
+    var split_id = lastid.split("-");
+    var index = Number(split_id[1]) + 1;
+    //Set maximum number of elements
+    var max = 5;
+    // Check total number elements
+    if(total_element < max ){
+        // Adding new div container after last occurance of element class
+        $(".element:last").after("<div class='element' id='div-"+ index +"'></div>");
+        //Build GUI
+        guiInit(index);
+        //Disable graphs which are already selected.
+        for(let i = 0; i < typeAvailable.length; i++) {
+            if(typeAvailable[i] === 0) {
+                document.getElementById('visTypeSelect-' + index).options[i].disabled = true;
+            }
+        }
+        //Disable options as to not create unexpected behaviour of site.
+        document.getElementById('visTypeSelect-' + index).addEventListener('change', function () {
+            document.getElementById('visGraph-' + index).classList.remove("disabled");
+            document.getElementById('settingsBtn-' + index).classList.remove("disabled");
+            document.getElementById('visTypeSelect-' + index).disabled = true;
+            //Get value of activated graph. Set array accordingly.
+            var sel = document.getElementById('visTypeSelect-' + index),
+                type = sel.options[sel.selectedIndex].value;
+            typeAvailable[type-1] = 0;
+
+            //Set standard values for graphs
+            svgWidth[index] = 1000; svgHeight[index] = 1000;
+
+            guiOptionInit(index, type).then(function (){
+                interactiveGraph(index, type);
+                rebuildColorPicker();
+            });
+
+        });
+
     }
 }
 
-function addGraph(){
-        // Finding total number of elements added
-        var total_element = $(".element").length;
-
-        // last <div> with element class id
-        var lastid = $(".element:last").attr("id");
-        var split_id = lastid.split("-");
-        var nextIndex = Number(split_id[1]) + 1;
-
-        var max = 5;
-        // Check total number elements
-        if(total_element < max ){
-            // Adding new div container after last occurance of element class
-            $(".element:last").after("<div class='element' id='div-"+ nextIndex +"'></div>");
-            //Build GUI
-            guiInit(nextIndex);
-            //Disable graphs which are already selected.
-            for(let i = 0; i < typeAvailable.length; i++) {
-                if(typeAvailable[i] === 0) {
-                    document.getElementById('visTypeSelect-' + nextIndex).options[i].disabled = true;
-                }
-            }
-
-            document.getElementById('visTypeSelect-' + nextIndex).addEventListener('change', function () {
-                document.getElementById('visGraph-' + nextIndex).classList.remove("disabled");
-                document.getElementById('settingsBtn-' + nextIndex).classList.remove("disabled");
-                document.getElementById('visTypeSelect-' + nextIndex).disabled = true;
-
-
-                var sel = document.getElementById('visTypeSelect-' + nextIndex),
-                type = sel.options[sel.selectedIndex].value;
-                typeAvailable[type-1] = 0;
-
-                guiOptionInit(nextIndex, type).then(function (){
-                    interactiveGraph(nextIndex, type);
-                    rebuildColorPicker();
-                });
-
-            });
-
-        }
-}
-
-
+//Function that adds appropriate event listeners for interactivity.
 function interactiveGraph(index, type){
     //Event Listener to draw graph
     document.getElementById('visGraph-' + index).addEventListener('click', function () {
@@ -116,23 +113,52 @@ function interactiveGraph(index, type){
         $('#visSVG-' + index).empty();
         typeSelector(index, type);
     });
-    //Event Listeners for changing svg dimensions
+    //Event Listeners for changing graph dimensions
     document.getElementById('width-form-' + index).addEventListener('input', function () {
-        svgWidth = document.getElementById('width-form-' + index).value;
+        svgWidth[index] = parseInt(document.getElementById('width-form-' + index).value);
         $('#visSVG-' + index).empty();
         typeSelector(index, type);
     });
-    //Event Listeners for changing svg dimensions
+    //Event Listeners for changing graph dimensions
     document.getElementById('height-form-' + index).addEventListener('input', function () {
-        svgHeight = document.getElementById('height-form-' + index).value;
+        svgHeight[index] = parseInt(document.getElementById('height-form-' + index).value);
         $('#visSVG-' + index).empty();
         typeSelector(index, type);
     });
 }
 
+//Select appropriate graph for global settings
+function typeSelector(index, type) {
+    switch(parseInt(type)){
+        case 2 :
+            drawNodeLinkForce(index);
+        break;
+        case 3 :
+            drawNodeLinkRadial(index);
+            break;
+        case 4 :
+            drawAdjacencyMatrix(index);
+        break;
+    }
+}
 
+function drawNodeLinkForce(index) {
+    //defining variables
+    var svg = d3.select('#visSVG-' + index)
+        .attr("width", svgWidth[index])
+        .attr("height", svgWidth[index])
+        .call(d3.zoom().on("zoom", function () { //zoom function
+            svg.attr("transform", d3.event.transform)
+        }))
+        .append("g");
 
-function drawNodeLinkGraph(index) {
+    var width = svgWidth[index],
+        height = svgWidth[index],
+        simulation = d3.forceSimulation(),
+        graph,
+        graphOrigin,
+        link,
+        node;
 
     //Event listeners for changing settings
     try {
@@ -188,12 +214,7 @@ function drawNodeLinkGraph(index) {
         document.getElementById('styleCheck-' + index).onchange = function () {
             $('#style_linkOpacity-'+ index).prop("disabled", (_, val) => !val);
             // Assign standard variables when checkbox is not checked.
-            if($('#styleCheck-'+ index +':checked').val()){
-                styling = true;
-
-            } else {
-                styling = false;
-            }
+            styling = !!$('#styleCheck-' + index + ':checked').val();
             updateAll();
         };
         document.getElementById('link_Distance-' + index).onchange = function () {
@@ -205,9 +226,16 @@ function drawNodeLinkGraph(index) {
             forceProperties.collide.enabled = !!$('#linkCheck'+ index +':checked').val();
             updateAll();
         };
+        document.getElementById('clusteringCheck-' + index).onchange = function () {
+            clusterActive = !clusterActive;
+            reloadJSON();
+            startDisplay();
+            startSimulation();
+            //updateAll();
+        };
         document.getElementById('style_nodeColor-' + index).onchange = function () {
             nodeColor ='#' + document.getElementById('style_nodeColor-' + index).value;
-            updateAll();
+
         };
         document.getElementById('style_linkColor-' + index).onchange = function () {
             linkColor ='#' + document.getElementById('style_linkColor-' + index).value;
@@ -224,30 +252,41 @@ function drawNodeLinkGraph(index) {
     //loading .json - file data_parsed_node-link
     d3.json("uploads/parsed/data_parsed_node-link.json", function(error, _graph) {
         if (error) throw error;
-        graph = _graph;
-        startDisplay();
-        startSimulation();
+        graphOrigin = _graph;
+        if(clusterActive){
+            clusterNodeGraph(_graph, false).then(function (data) {
+                graph = data;
+                startDisplay();
+                startSimulation();
+            });
+        }else{
+            graph = _graph;
+            startDisplay();
+            startSimulation();
+        }
     });
 
+    function reloadJSON(){
+        d3.json("uploads/parsed/data_parsed_node-link.json", function(error, _graph) {
+            if (error) throw error;
+            graphOrigin = _graph;
+            if(clusterActive){
+                clusterNodeGraph(_graph, false).then(function (data) {
+                    graph = data;
+                    startDisplay();
+                    startSimulation();
+                });
+            }else{
+                graph = _graph;
+                startDisplay();
+                startSimulation();
+            }
+        });
+    }
 
-
-    //defining variables
-    var svg = d3.select('#visSVG-' + index)
-        .attr("width", svgWidth)
-        .attr("height", svgHeight)
-        .call(d3.zoom().on("zoom", function () { //zoom function
-            svg.attr("transform", d3.event.transform)
-        }))
-        .append("g");
-
-    var width = svgWidth,
-        height = svgHeight,
-        simulation = d3.forceSimulation(),
-        graph,
-        link,
-        node;
 
     function startSimulation() {
+
         simulation.nodes(graph.nodes);
         startForce();
         simulation.on("tick", update);
@@ -290,7 +329,7 @@ function drawNodeLinkGraph(index) {
             .strength(forceProperties.charge.strength * forceProperties.charge.enabled)
             .distanceMax(forceProperties.charge.distanceMax);
         simulation.force("collide")
-            .radius(forceProperties.collide.radius);
+            .radius(function(d) { if(d.count){return d.count * 4 + 10;}else{return forceProperties.collide.radius}});
         simulation.force("X")
             .strength(forceProperties.X.strength * forceProperties.X.enabled)
             .x(width * forceProperties.X.x);
@@ -315,8 +354,8 @@ function drawNodeLinkGraph(index) {
             .style("stroke", linkColor)
             .selectAll("line")
             .data(graph.links)
-            .enter().append("line");
-            //.style("opacity", 0.1);
+            .enter().append("line")
+            .attr("opacity", 0.5);
 
         node = svg.append("g")
             .attr("stroke", "#fff")
@@ -328,26 +367,40 @@ function drawNodeLinkGraph(index) {
             .enter().append("circle")
             .call(d3.drag()
                 .on("start", startedTheDragging)
-                .on("drag", dragging));
-
+                .on("drag", dragging))
+                //[REDUNDANT].on("dblclick",function(d){ alert("node was double clicked"); })
+                .on("contextmenu", function (d, i) { // d = object (node), i = index
+                    // Remove standard browser menu
+                    d3.event.preventDefault();
+                    // React on right-clicking
+                    prepareCluster(d, graphOrigin, graph).then(function (result) {
+                        graph = result;
+                        /* [DEBUG]
+                        console.log(d);
+                        console.log(graph);
+                         */
+                        startDisplay();
+                        startSimulation();
+                    });
+                });
 
         updateDisplay();
     }
 
     function updateDisplay() {
         node
-            .attr("r", forceProperties.collide.radius)
+            .attr("r", function(d) { if(d.count){if(d.count*4>200){return 200}else{return d.count * 4;}}else{return forceProperties.collide.radius}});
             if(styling === true){
             node
                 .attr("stroke-width", 0.5)
                 .attr("fill", nodeColor);
             }
 
-
+        link //Stopped working inside if statement?
+            .style("stroke", linkColor)
+            .style("stroke-width", function(d) { let val = d.value * 2; if(val > 100){return 100}else{return val}});
             if(styling === true){
             link
-                .style("stroke-width", 1.5)
-                .style("stroke", linkColor)
                 .attr("opacity", linkOpacity);
             }
 
@@ -366,7 +419,7 @@ function drawNodeLinkGraph(index) {
             .attr("cy", function(d) { return d.y; });
     }
 
-    function startedTheDragging(d) {
+    function startedTheDragging() {
         if (!d3.event.active) simulation.alphaTarget(0.3).restart();
         d3.fx = d3.x;//save x-location before you change location of node
         d3.fy = d3.y;//save y-location before you change location of node
@@ -386,34 +439,157 @@ function drawNodeLinkGraph(index) {
     }
 }
 
+function drawNodeLinkRadial(index){
+    var nodesRadius = 2,
+        linksColor = "Red" ,
+        nodesColor = "Blue",
+        lineWidth = 0.8,
+        lineTransparency = 0.3,
+        nodeTransparency = 1.0, //keep this at 1.0!
+        radiusOfRadial = 500,
+        transform = d3.zoomIdentity,
+        simulation = d3.forceSimulation();
+
+    var canvas = d3.select('#visCanvas-' + index)
+        .append("canvas")
+        .attr('width', svgWidth[index])
+        .attr('height', svgWidth[index])
+        .node();
+    //input
+    d3.json('uploads/parsed/data_parsed_node-link.json', function (error, graph) {
+        if (error) throw error;
+
+        simulation.force("link", d3.forceLink()
+            .strength(0)
+            .id(function(d) { return d.id; }))
+            .force("charge", d3.forceCollide()
+                .radius(10))
+            .force("r", d3.forceRadial(function() { return radiusOfRadial;}));
+        var ctx = canvas.getContext('2d');
+        //add zoomfunction to visualization
+        d3.select(canvas)
+            .call(d3.zoom()
+                .scaleExtent([1 / 1000, 10])
+                .on("zoom", zoom));
+        simulation.nodes(graph.nodes)
+            .on('tick', tick);
+
+        simulation.force('link')
+            .links(graph.links);
+
+        //zoomfunction
+        function zoom() {
+            transform = d3.event.transform;
+            tick();}
+        function tick() {
+            ctx.save();
+
+            ctx.clearRect(0, 0, svgWidth[index], svgHeight[index]);
+            ctx.translate(transform.x, transform.y);
+            ctx.scale(transform.k, transform.k);
+            ctx.beginPath();
+            graph.links.forEach(function (d) {
+                //width of edge
+                ctx.lineWidth = lineWidth;
+                //color of edge
+                ctx.strokeStyle = linksColor;
+                //tranparency of whole graph!!
+                ctx.globalAlpha = lineTransparency;
+                ctx.moveTo(d.source.x, d.source.y);
+                ctx.lineTo(d.target.x, d.target.y); });
+            ctx.stroke();
+            graph.nodes.forEach(function (d) {
+                //color of nodes
+                ctx.fillStyle = nodesColor;
+                //transparency of nodes
+                ctx.globalAlpha = nodeTransparency;
+
+                ctx.beginPath();
+                ctx.moveTo(d.x, d.y);
+                ctx.arc(d.x, d.y, nodesRadius, 0, 2 * Math.PI);
+                ctx.fill();});
+            ctx.restore();}
+
+    });
+}
+
 function drawAdjacencyMatrix(index) {
-
-    var width_adj = svgWidth,
-        height_adj = svgHeight;
+    var margin = {top: 100, right: 0, bottom: 10, left: 100};
+    var width_adj = svgWidth[index],
+        height_adj = svgHeight[index],
+        matrix_adj = [],
+        nodes_adj, links_adj, n;
     var x_adj = d3.scaleBand().range([0, width_adj]),
-        z_adj = d3.scaleLinear().domain([0, 4]).clamp(true),
-        c_adj = d3.scaleOrdinal(d3.schemeCategory10).domain(d3.range(10));
+        z_adj = d3.scaleLinear().domain([0, 4]).clamp(true);
+        //c_adj = d3.scaleOrdinal(d3.schemeCategory10).domain(d3.range(10));
     var svg_adj = d3.select('#visSVG-' + index)
-        .attr("width", width_adj )
-        .attr("height", height_adj)
-        .append("g");
+        .attr("width", (width_adj + margin.left + margin.right))
+        .attr("height", (height_adj + margin.top + margin.bottom))
+        //.style("margin-right", -margin.left + "px")
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-    d3.json("uploads/parsed/data_parsed_matrix.json", function(data) {
-        var matrix_adj = [],
-            nodes_adj = data.nodes,
-            links_adj  =data.links,
-            n = nodes_adj.length;
+    function loadJSON() {
+        return new Promise(function (resolve) {
+            d3.json("uploads/parsed/data_parsed_matrix.json", function(data) {
+                resolve(data);
+            });
+        });
+    }
+
+    //Redundant for the moment -does nothing-
+    function clusterLouvain(data) {
+//        var nodeArr = [];
+/*
+        data.nodes.forEach(function (e) {
+           nodeArr.push(e.indexOf());
+        });
+
+
+        for(let i = 0; i < data.nodes.length; i++){
+            nodeArr.push(i);
+        }
+
+ */
+
+        //console.log(nodeArr);
+        //console.log(data.links);
+        //var community = jLouvain().nodes(nodeArr).edges(data.links);
+        //console.log(community());
+        return data;
+    }
+
+    loadJSON().then(function (data) {
+        return new Promise(function (resolve) {
+           resolve(clusterLouvain(data));
+        });
+    }).then(function(data) {
+        matrix_adj = [];
+        nodes_adj = data.nodes;
+        links_adj = data.links;
+        n = nodes_adj.length;
+
+
         // Compute index per node.
         nodes_adj.forEach(function(node, i) {
             node.index = i;
             node.count = 0;
-            matrix_adj[i] = d3.range(n).map(function(j) { return {x: j, y: i, z: 0}; });
+            //matrix_adj[i] = d3.range(n).map(function(j) { return {x: j, y: i, z: 0}; });
         });
 
-        /* Redundant Code [DO NOT REMOVE]
-        console.log(data.nodes);
-        console.log(data.links);
+        //Add listeners
+        document.getElementById('lineCheck-' + index).onchange = function () {
+            // Assign standard variables when checkbox is not checked.
+            if($('#lineCheck-'+ index +':checked').val()){
+                lines = true;
+                drawMatrix();
+            } else {
+                lines = false;
+                drawMatrix();
+            }
+        };
 
+        //Initialize matrix
         matrix_adj = new Array(n).fill(0).map(() => new Array(n).fill(0));
         //Map values x = i, y = j.
         for(let j = 0; j < n; j++){
@@ -421,6 +597,21 @@ function drawAdjacencyMatrix(index) {
                 matrix_adj[i][j] = {x: j, y: i, z: 0};
             }
         }
+
+        // Convert links to matrix; count character occurrences.
+        links_adj.forEach(function(link) {
+            if(matrix_adj[link.source][link.target] != null) {
+                matrix_adj[link.source][link.target].z += link.value;
+                matrix_adj[link.target][link.source].z += link.value;
+                nodes_adj[link.source].count++;
+                nodes_adj[link.target].count++;
+            }
+        });
+
+        /* Redundant Code [DO NOT REMOVE]
+        console.log(data.nodes);
+        console.log(data.links);
+
 
         links_adj.forEach(function (link) {
             if(matrix_adj[link.source][link.target] != null){
@@ -441,77 +632,32 @@ function drawAdjacencyMatrix(index) {
 
         */
 
-        // Convert links to matrix; count character occurrences.
-        data.links.forEach(function(link) {
-            if(matrix_adj[link.source][link.target] != null) {
-                matrix_adj[link.source][link.target].z += link.value;
-                matrix_adj[link.target][link.source].z += link.value;
-                nodes_adj[link.source].count++;
-                nodes_adj[link.target].count++;
-            }
-        });
-
         // Precompute the orders.
         var orders = {
             id: d3.range(n).sort(function(a, b) { return d3.ascending(nodes_adj[a].id, nodes_adj[b].id); }),
             count: d3.range(n).sort(function(a, b) { return nodes_adj[b].count - nodes_adj[a].count; })
         };
+
         // The default sort order.
         x_adj.domain(orders.id);
-        svg_adj.append("rect")
-            .attr("class", "background-matrix")
-            .attr("width", width_adj)
-            .attr("height", height_adj);
-        var row = svg_adj.selectAll(".row")
-            .data(matrix_adj)
-            .enter().append("g")
-            .attr("class", "row")
-            .attr("transform", function(d, i) { return "translate(0," + x_adj(i) + ")"; })
-            .each(row);
-        //row.append("line")
-        //    .attr("x2", width_adj);
-        row.append("text")
-            .attr("x", -6)
-            .attr("y", x_adj.bandwidth() / 2)
-            .attr("dy", ".32em")
-            .attr("text-anchor", "end")
-            .text(function(d, i) { return nodes_adj[i].id; });
-        var column = svg_adj.selectAll(".column")
-            .data(matrix_adj)
-            .enter().append("g")
-            .attr("class", "column")
-            .attr("transform", function(d, i) { return "translate(" + x_adj(i) + ")rotate(-90)"; });
-        //column.append("line")
-        //    .attr("x1", -width_adj);
-        column.append("text")
-            .attr("x", 6)
-            .attr("y", x_adj.bandwidth() / 2)
-            .attr("dy", ".32em")
-            .attr("text-anchor", "start")
-            .text(function(d, i) { return nodes_adj[i].id; });
-        function row(row) {
-            var cell = d3.select(this).selectAll(".cell")
-                .data(row.filter(function(d) { return d.z; }))
-                .enter().append("rect")
-                .attr("class", "cell")
-                .attr("x", function(d) { return x_adj(d.x); })
-                .attr("width", x_adj.bandwidth())
-                .attr("height", x_adj.bandwidth())
-                .style("fill-opacity", function(d) { return z_adj(d.z); })
-                .on("mouseover", mouseover)
-                .on("mouseout", mouseout);
-        }
+        drawMatrix();
+
         function mouseover(p) {
             d3.selectAll(".row text").classed("active", function(d, i) { return i === p.y; });
             d3.selectAll(".column text").classed("active", function(d, i) { return i === p.x; });
+            d3.selectAll(".cell").classed("active", function(d, i) { return i === p.x; });
         }
+
         function mouseout() {
             d3.selectAll("text").classed("active", false);
+            d3.selectAll(".cell").classed("active", false);
         }
-        d3.select("#order").on("change", function() {
+
+        d3.select("#visTypeSelect").on("change", function() {
             clearTimeout(timeout);
             order(this.value);
         });
+
         function order(value) {
             x_adj.domain(orders[value]);
             var t = svg_adj.transition().duration(2500);
@@ -525,9 +671,67 @@ function drawAdjacencyMatrix(index) {
                 .delay(function(d, i) { return x_adj(i) * 4; })
                 .attr("transform", function(d, i) { return "translate(" + x_adj(i) + ")rotate(-90)"; });
         }
+        /*
         var timeout = setTimeout(function() {
             order("count");
-            d3.select("#order").property("selectedIndex", 2).node().focus();
+            d3.select("#visTypeSelect").property("selectedIndex", 1).node().focus();
         }, 5000);
+         */
+        function drawMatrix(){
+            svg_adj.selectAll("*").remove();
+            svg_adj.append("rect")
+                .attr("class", "background-matrix")
+                .attr("width", width_adj)
+                .attr("height", height_adj);
+            // noinspection JSDuplicatedDeclaration
+            var row = svg_adj.selectAll(".row")
+                .data(matrix_adj)
+                .enter().append("g")
+                .attr("class", "row")
+                .attr("transform", function(d, i) { return "translate(0," + x_adj(i) + ")"; })
+                .each(row);
+            row.append("text")
+                .style("font-size", calcFont(height_adj))
+                .attr("x", -6)
+                .attr("y", x_adj.bandwidth() / 2)
+                .attr("dy", ".32em")
+                .attr("text-anchor", "end")
+                .text(function(d, i) { return nodes_adj[i].id; });
+            var column = svg_adj.selectAll(".column")
+                .data(matrix_adj)
+                .enter().append("g")
+                .attr("class", "column")
+                .attr("transform", function(d, i) { return "translate(" + x_adj(i) + ")rotate(-90)"; });
+            column.append("text")
+                .style("font-size", calcFont(width_adj))
+                .attr("x", 6)
+                .attr("y", x_adj.bandwidth() / 2)
+                .attr("dy", ".32em")
+                .attr("text-anchor", "start")
+                .text(function(d, i) { return nodes_adj[i].id; });
+            // noinspection JSDuplicatedDeclaration
+            function row(row) {
+                var cell = d3.select(this).selectAll(".cell")
+                    .data(row.filter(function(d) { return d.z; }))
+                    .enter().append("rect")
+                    .attr("class", "cell")
+                    .attr("x", function(d) { return x_adj(d.x); })
+                    .attr("width", x_adj.bandwidth())
+                    .attr("height", x_adj.bandwidth())
+                    .style("fill-opacity", function(d) { return z_adj(d.z); })
+                    .on("mouseover", mouseover)
+                    .on("mouseout", mouseout);
+            }
+            if(lines){
+                row.append("line")
+                    .attr("x2", width_adj);
+                column.append("line")
+                    .attr("x1", -width_adj);
+            }
+        }
+        //Calculate font size of node titles dependent of Matrix size.
+        function calcFont(size) {
+            return (size/1200).toString() + 'px';
+        }
     });
 }
