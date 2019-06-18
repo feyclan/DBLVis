@@ -6,7 +6,7 @@ export function guiInit(index) {
         <div class="card text-center mb-3" id="card-${index}">
             <div class="card-header text-right">
                 <div class="form-check-inline">
-                    <label class="sr-only" for="visTypeSelect">Type</label>
+                    <label class="sr-only" for="visTypeSelect-${index}">Type</label>
                     <div class="input-group mb-2">
                         <div class="input-group-prepend">
                             <div class="input-group-text">Type</div>
@@ -16,6 +16,7 @@ export function guiInit(index) {
                             <option value="2">Node Link [Force]</option>
                             <option value="3">Node Link [Radial]</option>
                             <option value="4">Adjacency Matrix</option>
+                            <option value="5">Arc Diagram</option>
                         </select>
                     </div>
                </div>
@@ -103,8 +104,8 @@ export function guiOptionInit(index, type) {
                                             <input type="range" class="custom-range" id="charge_Strength-${index}" min="-200" max="10" value="-50" step=".1">
                                         </div>
                                         <div class="form-group">
-                                            <div class="input-group-text mb-2">Max Distance :\t&nbsp;<div id="distanceMax-label-${index}">2000</div></div>
-                                            <input type="range" class="custom-range" id="charge_distanceMax-${index}" min="0" max="2000" value="2000" step=".1">
+                                            <div class="input-group-text mb-2">Max Distance :\t&nbsp;<div id="distanceMax-label-${index}">5000</div></div>
+                                            <input type="range" class="custom-range" id="charge_distanceMax-${index}" min="0" max="5000" value="5000" step=".1">
                                         </div>
                                     </div>
                                 </div>
@@ -139,6 +140,10 @@ export function guiOptionInit(index, type) {
                                         <div class="custom-control custom-checkbox">
                                             <input type="checkbox" class="custom-control-input" id="clusteringCheck-${index}" checked>
                                             <label class="custom-control-label" for="clusteringCheck-${index}">Clustering&nbsp;&nbsp;<i class="fas fa-exclamation-triangle"></i></label>
+                                        </div>
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input" id="clusterZoom-${index}">
+                                            <label class="custom-control-label" for="clusterZoom-${index}">Cluster Zooming</label>
                                         </div>
                                     </div>
                                 </div>
@@ -193,6 +198,17 @@ export function guiOptionInit(index, type) {
                                 </div>
                             </div>
                             <div class="col-auto">
+                                <label class="sr-only" for="childrenList-${index}">Children</label>
+                                <div class="input-group mb-2">
+                                    <div class="input-group-prepend">
+                                        <div class="input-group-text">Children</div>
+                                    </div>
+                                    <select class="custom-select mr-sm-2" id="childrenList-${index}">
+                                   
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-auto">
                                 <div class="input-group mb-2">
                                     <div class="input-group-prepend">
                                         <div class="input-group-text">X :</div>
@@ -213,8 +229,8 @@ export function guiOptionInit(index, type) {
                 </div>
             </div>
             <div class="collapse" id="visualisation-${index}">
-                <div class="card-body">
-                    <svg id="visSVG-${index}"></svg>
+                <div class="card-body" id="vis-body-${index}">
+                    <svg id="vis-${index}"></svg>
                 </div>
             </div>`);
             break;
@@ -261,7 +277,8 @@ export function guiOptionInit(index, type) {
                 </div>
             </div>
             <div class="collapse" id="visualisation-${index}">
-                <div class="card-body" id="visCanvas-${index}">
+                <div class="card-body maxwidth" id="vis-body-${index}">
+                    <div id="vis-${index}"></div>
                 </div>
             </div>`);
             break;
@@ -290,7 +307,7 @@ export function guiOptionInit(index, type) {
                                             <div class="input-group-prepend">
                                                 <div class="input-group-text">Height</div>
                                             </div>
-                                            <input type="text" class="form-control" id="height-form-${index}" placeholder="px" value="1000">
+                                            <input type="text" class="form-control" id="height-form-${index}" placeholder="px" value="1000" readonly>
                                         </div>
                                     </div>
                                 </div>
@@ -305,11 +322,12 @@ export function guiOptionInit(index, type) {
                                             <div class="input-group-prepend">
                                                 <div class="input-group-text">Type</div>
                                             </div>
-                                            <select class="custom-select mr-sm-2" id="visTypeSelect-${index}">
-                                                <option value="1" selected disabled>Random</option>
-                                                <option value="2">Alphabetical</option>
-                                                <option value="3">Value</option>
-                                                <option value="3">Group</option>
+                                            <select class="custom-select mr-sm-2" id="ordering-${index}">
+                                                <option value="id" selected>Alphabetical</option>
+                                                <option value="nameReverse">Alphabetical (Reversed)</option>
+                                                <option value="count">by Connections</option>
+                                                <option value="countReverse">by Connections (Reversed)</option>
+                                                <option value="group">by Cluster</option>
                                             </select>
                                         </div>
                                     </div>
@@ -367,8 +385,56 @@ export function guiOptionInit(index, type) {
                 </div>
             </div>
             <div class="collapse" id="visualisation-${index}">
-                <div class="card-body scroll" id="scroll-${index}">
-                    <svg id="visSVG-${index}"></svg>
+                <div class="card-body scroll" id="vis-body-${index}">
+                    <svg id="vis-${index}"></svg>
+                </div>
+            </div>`);
+            break;
+        case 5:
+            // noinspection JSJQueryEfficiency
+            $("#card-" + index).append(`
+            <div class="collapse" id="settings-${index}">
+                <div class="card-body">
+                    
+                </div>
+            </div>
+            <div class="collapse" id="info-${index}">
+                <div class="card text-left">
+                    <div class="card-body">
+                        <h6 class="card-title">Node Information</h6>
+                        <hr>
+                        <div class="form-row align-items-center">
+                            <div class="col-auto">
+                                <div class="input-group mb-2">
+                                    <div class="input-group-prepend">
+                                        <div class="input-group-text">Name :</div>
+                                    </div>
+                                    <div class="form-control" id="nodeName-${index}"></div>
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <div class="input-group mb-2">
+                                    <div class="input-group-prepend">
+                                        <div class="input-group-text">X :</div>
+                                    </div>
+                                    <div class="form-control" id="nodeX-${index}"></div>
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <div class="input-group mb-2">
+                                    <div class="input-group-prepend">
+                                        <div class="input-group-text">Y :</div>
+                                    </div>
+                                    <div class="form-control" id="nodeY-${index}"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="collapse" id="visualisation-${index}">
+                <div class="card-body scroll" id="vis-body-${index}">
+                    <div id="vis-${index}"></div>
                 </div>
             </div>`);
             break;

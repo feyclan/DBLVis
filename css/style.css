@@ -98,6 +98,7 @@ body {
 ----------------------------------------------------- */
 
 #content {
+    overflow: hidden;
     width: 100%;
     padding: 20px;
     min-height: 100vh;

@@ -6,16 +6,18 @@ import {clusterNodeGraph, prepareCluster} from "./cluster.js";
 // Global standard value init.
 
 //Array [standard val, value for graph 1, value for graph 2, ...]
-var svgWidth = [],
-    svgHeight = [],
-    // Graph types that are not yet selected are 1, otherwise 0. [None, Node Link force, Node Link Radial, Adjacency Matrix]
-    typeAvailable = [0, 1, 1, 1],
+var gWidth = [],
+    gHeight = [],
+    // Graph types that are not yet selected are 1, otherwise 0. [None, Node Link force, Node Link Radial, Adjacency Matrix, Arc Diagram]
+    typeAvailable = [0, 1, 1, 1, 1],
     lines = false,
     styling = false,
     nodeColor = '#007bff',
     linkColor = '#D0D0D0',
     linkOpacity = 0.5,
-    clusterActive = true;
+    clusterActive = true,
+    clusterZoom = false,
+    activeNodes = [];
 
 var forceProperties = {
     //are not resettable in window
@@ -39,7 +41,7 @@ var forceProperties = {
     charge: {
         enabled: true, //charge box is checked
         strength: -50, //zoom in or out
-        distanceMax: 2000 // distance between nodes
+        distanceMax: 5000 // distance between nodes
     },
 
     collide: {
@@ -92,7 +94,7 @@ function addMenuBar(){
             typeAvailable[type-1] = 0;
 
             //Set standard values for graphs
-            svgWidth[index] = 1000; svgHeight[index] = 1000;
+            gWidth[index] = 1000; gHeight[index] = 1000;
 
             guiOptionInit(index, type).then(function (){
                 interactiveGraph(index, type);
@@ -110,19 +112,46 @@ function interactiveGraph(index, type){
     document.getElementById('visGraph-' + index).addEventListener('click', function () {
         document.getElementById('infoBtn-' + index).classList.remove("disabled");
         document.getElementById('visBtn-' + index).classList.remove("disabled");
-        $('#visSVG-' + index).empty();
+        $('#vis-' + index).empty();
         typeSelector(index, type);
     });
-    //Event Listeners for changing graph dimensions
+    //Event Listener for dynamic change of graph width
+    document.getElementById('visBtn-' + index).addEventListener('click', function() {
+        switch(parseInt(type)){
+            case 2 :
+                gWidth[index] = document.getElementById('card-' + index).offsetWidth * 0.977;
+                d3.select('#vis-' + index)
+                    .attr("width", gWidth[index])
+                    .attr("height", gHeight[index]);
+                break;
+            case 3 :
+
+                break;
+            case 4 :
+
+                break;
+            case 5 :
+
+                break;
+        }
+    });
+    //Event Listener for changing graph dimensions
     document.getElementById('width-form-' + index).addEventListener('input', function () {
-        svgWidth[index] = parseInt(document.getElementById('width-form-' + index).value);
-        $('#visSVG-' + index).empty();
+        gWidth[index] = parseInt(document.getElementById('width-form-' + index).value);
+        switch(parseInt(type)){
+            case 4 :
+                gHeight[index] = gWidth[index];
+                document.getElementById('height-form-' + index).value = gHeight[index];
+                break;
+        }
+        $('#vis-' + index).empty();
         typeSelector(index, type);
     });
-    //Event Listeners for changing graph dimensions
+
+    //Event Listener for changing graph dimensions
     document.getElementById('height-form-' + index).addEventListener('input', function () {
-        svgHeight[index] = parseInt(document.getElementById('height-form-' + index).value);
-        $('#visSVG-' + index).empty();
+        gHeight[index] = parseInt(document.getElementById('height-form-' + index).value);
+        $('#vis-' + index).empty();
         typeSelector(index, type);
     });
 }
@@ -138,22 +167,26 @@ function typeSelector(index, type) {
             break;
         case 4 :
             drawAdjacencyMatrix(index);
+            break;
+        case 5 :
+            drawArcDiagram(index);
         break;
     }
 }
 
 function drawNodeLinkForce(index) {
     //defining variables
-    var svg = d3.select('#visSVG-' + index)
-        .attr("width", svgWidth[index])
-        .attr("height", svgWidth[index])
+    var svg = d3.select('#vis-' + index)
+        .attr("width", gWidth[index])
+        .attr("height", gHeight[index])
         .call(d3.zoom().on("zoom", function () { //zoom function
             svg.attr("transform", d3.event.transform)
         }))
         .append("g");
 
-    var width = svgWidth[index],
-        height = svgWidth[index],
+
+    var width = gWidth[index],
+        height = gHeight[index],
         simulation = d3.forceSimulation(),
         graph,
         graphOrigin,
@@ -183,9 +216,9 @@ function drawNodeLinkForce(index) {
                 document.getElementById('distanceMax-label-' + index).textContent = forceProperties.charge.distanceMax;
             } else {
                 forceProperties.charge.strength = -50;
-                forceProperties.charge.distanceMax = 2000;
+                forceProperties.charge.distanceMax = 5000;
                 document.getElementById('Strength-label-' + index).textContent = '-50';
-                document.getElementById('distanceMax-label-' + index).textContent = '2000';
+                document.getElementById('distanceMax-label-' + index).textContent = '5000';
             }
             updateAll();
         };
@@ -231,11 +264,15 @@ function drawNodeLinkForce(index) {
             reloadJSON();
             startDisplay();
             startSimulation();
-            //updateAll();
+        };
+        document.getElementById('clusterZoom-' + index).onchange = function () {
+            clusterZoom = !clusterZoom;
+            startDisplay();
+            startSimulation();
         };
         document.getElementById('style_nodeColor-' + index).onchange = function () {
             nodeColor ='#' + document.getElementById('style_nodeColor-' + index).value;
-
+            updateAll();
         };
         document.getElementById('style_linkColor-' + index).onchange = function () {
             linkColor ='#' + document.getElementById('style_linkColor-' + index).value;
@@ -254,7 +291,7 @@ function drawNodeLinkForce(index) {
         if (error) throw error;
         graphOrigin = _graph;
         if(clusterActive){
-            clusterNodeGraph(_graph, false).then(function (data) {
+            clusterNodeGraph(_graph, false, 'node').then(function (data) {
                 graph = data;
                 startDisplay();
                 startSimulation();
@@ -271,7 +308,7 @@ function drawNodeLinkForce(index) {
             if (error) throw error;
             graphOrigin = _graph;
             if(clusterActive){
-                clusterNodeGraph(_graph, false).then(function (data) {
+                clusterNodeGraph(_graph, false, 'node').then(function (data) {
                     graph = data;
                     startDisplay();
                     startSimulation();
@@ -312,9 +349,12 @@ function drawNodeLinkForce(index) {
             .force("X", d3.forceX())//put graph in the middle of x-axis of canvas
             .force("Y", d3.forceY())//put graph in the middle of y-axis of canvas
             .force("center", d3.forceCenter())
+            .alphaDecay(.02)
+            .velocityDecay(0.6)
             .force("collide", d3.forceCollide())//do not let the nodes collide and give an even distance between nodes
             .force("charge", d3.forceManyBody())//causes nodes in the graph to repel each other
             .force("link", d3.forceLink());//strength between edges
+
         // apply properties to each of the forces
         updateForces();
     }
@@ -368,12 +408,30 @@ function drawNodeLinkForce(index) {
             .call(d3.drag()
                 .on("start", startedTheDragging)
                 .on("drag", dragging))
-                //[REDUNDANT].on("dblclick",function(d){ alert("node was double clicked"); })
+                .on("click", function(d) {
+                    var select = document.getElementById('childrenList-' + index);
+                    var options = d.children;
+                    activeNodes = d.children;
+                    // Reset dropdown list
+                    $('#childrenList-' + index).empty();
+                    // Change styling
+                    //d3.select(this).style('fill', 'red');
+
+                    // Add nodes to children list
+                    for(var i = 0; i < options.length; i++) {
+                        var opt = options[i];
+                        var el = document.createElement("option");
+                        el.textContent = opt;
+                        el.value = opt;
+                        select.appendChild(el);
+                    }
+
+                })
                 .on("contextmenu", function (d, i) { // d = object (node), i = index
                     // Remove standard browser menu
                     d3.event.preventDefault();
                     // React on right-clicking
-                    prepareCluster(d, graphOrigin, graph).then(function (result) {
+                    prepareCluster(d, graphOrigin, graph, clusterZoom, 'node').then(function (result) {
                         graph = result;
                         /* [DEBUG]
                         console.log(d);
@@ -384,7 +442,8 @@ function drawNodeLinkForce(index) {
                     });
                 });
 
-        updateDisplay();
+
+            updateDisplay();
     }
 
     function updateDisplay() {
@@ -450,10 +509,10 @@ function drawNodeLinkRadial(index){
         transform = d3.zoomIdentity,
         simulation = d3.forceSimulation();
 
-    var canvas = d3.select('#visCanvas-' + index)
+    var canvas = d3.select('#vis-' + index)
         .append("canvas")
-        .attr('width', svgWidth[index])
-        .attr('height', svgWidth[index])
+        .attr('width', gWidth[index])
+        .attr('height', gWidth[index])
         .node();
     //input
     d3.json('uploads/parsed/data_parsed_node-link.json', function (error, graph) {
@@ -484,7 +543,7 @@ function drawNodeLinkRadial(index){
         function tick() {
             ctx.save();
 
-            ctx.clearRect(0, 0, svgWidth[index], svgHeight[index]);
+            ctx.clearRect(0, 0, gWidth[index], gHeight[index]);
             ctx.translate(transform.x, transform.y);
             ctx.scale(transform.k, transform.k);
             ctx.beginPath();
@@ -515,14 +574,14 @@ function drawNodeLinkRadial(index){
 
 function drawAdjacencyMatrix(index) {
     var margin = {top: 100, right: 0, bottom: 10, left: 100};
-    var width_adj = svgWidth[index],
-        height_adj = svgHeight[index],
+    var width_adj = gHeight[index] = gWidth[index],
+        height_adj = gHeight[index],
         matrix_adj = [],
         nodes_adj, links_adj, n;
     var x_adj = d3.scaleBand().range([0, width_adj]),
         z_adj = d3.scaleLinear().domain([0, 4]).clamp(true);
         //c_adj = d3.scaleOrdinal(d3.schemeCategory10).domain(d3.range(10));
-    var svg_adj = d3.select('#visSVG-' + index)
+    var svg_adj = d3.select('#vis-' + index)
         .attr("width", (width_adj + margin.left + margin.right))
         .attr("height", (height_adj + margin.top + margin.bottom))
         //.style("margin-right", -margin.left + "px")
@@ -539,23 +598,7 @@ function drawAdjacencyMatrix(index) {
 
     //Redundant for the moment -does nothing-
     function clusterLouvain(data) {
-//        var nodeArr = [];
-/*
-        data.nodes.forEach(function (e) {
-           nodeArr.push(e.indexOf());
-        });
-
-
-        for(let i = 0; i < data.nodes.length; i++){
-            nodeArr.push(i);
-        }
-
- */
-
-        //console.log(nodeArr);
-        //console.log(data.links);
-        //var community = jLouvain().nodes(nodeArr).edges(data.links);
-        //console.log(community());
+        //return clusterNodeGraph(data, false, 'matrix');
         return data;
     }
 
@@ -587,6 +630,10 @@ function drawAdjacencyMatrix(index) {
                 lines = false;
                 drawMatrix();
             }
+        };
+        document.getElementById('ordering-' + index).onchange = function () {
+            let e = document.getElementById('ordering-' + index);
+            order(e.options[e.selectedIndex].value);
         };
 
         //Initialize matrix
@@ -635,7 +682,9 @@ function drawAdjacencyMatrix(index) {
         // Precompute the orders.
         var orders = {
             id: d3.range(n).sort(function(a, b) { return d3.ascending(nodes_adj[a].id, nodes_adj[b].id); }),
-            count: d3.range(n).sort(function(a, b) { return nodes_adj[b].count - nodes_adj[a].count; })
+            nameReverse: d3.range(n).sort(function(a, b) { return d3.descending(nodes_adj[a].id, nodes_adj[b].id); }),
+            count: d3.range(n).sort(function(a, b) { return nodes_adj[b].count - nodes_adj[a].count; }),
+            countReverse: d3.range(n).sort(function(a, b) { return nodes_adj[a].count - nodes_adj[b].count; })
         };
 
         // The default sort order.
@@ -720,7 +769,7 @@ function drawAdjacencyMatrix(index) {
                     .attr("height", x_adj.bandwidth())
                     .style("fill-opacity", function(d) { return z_adj(d.z); })
                     .on("mouseover", mouseover)
-                    .on("mouseout", mouseout);
+                    .on("mouseout", mouseout)
             }
             if(lines){
                 row.append("line")
@@ -734,4 +783,105 @@ function drawAdjacencyMatrix(index) {
             return (size/1200).toString() + 'px';
         }
     });
+}
+
+function drawArcDiagram(index) {
+    var margin = {top: 10, right: 10, bottom: 230, left: 10},
+        width,
+        height,
+        nodeRadius = 10,
+        nodeColor = "Red",
+        nodeColorOnPress = "Black",
+        nodesColorOnPress = "Green",
+        edgeColor = "Blue",
+        edgeColorOnPress = "Yellow",
+        edgeWidth = 1,
+        edgeWidthOnPress = 5;
+
+    d3.json("uploads/parsed/data_parsed_node-link.json", function( data) {
+        width = (data.nodes.length * 20) / 2;
+        height = width/2;
+
+        var svg = d3.select('#vis-' + index)
+            .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform",
+                "translate(" + margin.left + "," + margin.top + ")");
+
+        var allNodes = data.nodes.map(function(d){return d.id});
+
+        var x = d3.scalePoint().range([0, width]).domain(allNodes);
+
+
+        var nodes = svg
+            .selectAll("mynodes")
+            .data(data.nodes)
+            .enter()
+            .append("circle")
+            .attr("cx", function(d){ return(x(d.id))})
+            .attr("cy", height - 30)
+            .attr("r", nodeRadius)
+            .style("fill", nodeColor);
+
+
+
+        var labels = svg
+            .selectAll("mylabels")
+            .data(data.nodes)
+            .enter()
+            .append("text")
+            .attr("x", function(d){ return(x(d.id))})
+            .attr("y", height-10)
+            .text(function(d){ return(d.id)})
+            .style("text-anchor", "end")
+            .style("font-size", "10px")
+            .attr('transform', function () {
+                return 'rotate(-90,' + d3.select(this).attr('x') + ',' + d3.select(this).attr('y') + ')';
+            });
+            //.attr("transform", function(d, i) { return "translate(" + x_adj(i) + ")rotate(-90)"; });
+            //.attr("transform", "rotate(-90)");
+
+
+        var idToNode = {};
+        data.nodes.forEach(function (n) {
+            idToNode[n.id] = n;
+        });
+
+
+        var links = svg
+            .selectAll('mylinks')
+            .data(data.links)
+            .enter()
+            .append('path')
+            .attr('d', function (d) {
+                let start = x(idToNode[d.source].id);
+                let end = x(idToNode[d.target].id);
+                return ['M', start, height-30,
+                    'A',
+                    (start - end)/2, ',',
+                    (start - end)/2, 0, 0, ',',
+                    start < end ? 1 : 0, end, ',', height-30]
+                    .join(' ');
+            })
+            .style("fill", "none") //edges are circles, this states that the circles do not have a filling.
+            .attr("stroke", edgeColor);
+
+
+        nodes
+            .on('mouseover', function (d) {
+                nodes.style('fill', nodesColorOnPress);
+                d3.select(this).style('fill', nodeColorOnPress);
+                links
+                    .style('stroke', function (link_d) { return link_d.source === d.id || link_d.target === d.id ? edgeColor : edgeColorOnPress;})
+                    .style('stroke-width', function (link_d) { return link_d.source === d.id || link_d.target === d.id ? edgeWidthOnPress : edgeWidth;})
+            })
+            .on('mouseout', function (d) {
+                nodes.style('fill', nodeColor);
+                links
+                    .style('stroke', edgeColor)
+                    .style('stroke-width', '1')
+            })
+    })
 }
